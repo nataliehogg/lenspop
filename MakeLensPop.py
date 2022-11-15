@@ -1,6 +1,9 @@
 import distances
 from scipy import interpolate
-import cPickle,numpy,math
+# import cPickle
+import pickle
+import numpy
+import math
 import indexTricks as iT
 import pylab as plt
 from PopulationFunctions import *
@@ -45,7 +48,7 @@ class SourcePopulation(SourcePopulation_):
             self.loadcosmos()
         elif population=="lsst":
             self.loadlsst()
-        
+
 
         #NB all the functions are in the inherited from class.
 
@@ -67,7 +70,7 @@ class LensSample():
 
         self.L=LensPopulation(reset=reset,sigfloor=sigfloor,zlmax=zlmax,bands=bands,D=D)
 
-        self.S=SourcePopulation(reset=reset,bands=bands,D=D,population=sourcepop)        
+        self.S=SourcePopulation(reset=reset,bands=bands,D=D,population=sourcepop)
 
         self.E=EinsteinRadiusTools(D=D)
 
@@ -77,23 +80,30 @@ class LensSample():
 
     def Generate_Lens_Pop(self,N,firstod=1,nsources=1,prunenonlenses=True,save=True):
         import time
-        t0=time.clock()
+        # t0=time.clock()
+        t0 = time.perf_counter()
         if prunenonlenses==False: assert N<60000
-        
+
         self.lens={}
         self.reallens={}
         M=N*1
         l=-1
         l2=-1
         while M>0:
-            timeleft="who knows"
+            # timeleft="who knows"
+            timeleft= 500 # fake number to initialise
             if M!=N:
-                tnow=time.clock()
+                # tnow=time.clock()
+                tnow=time.perf_counter()
                 ti=(tnow-t0)/float(N-M)
                 timeleft=ti*M/60.
-                
 
-            print M,timeleft," minutes left"
+
+            # print M,timeleft," minutes left"
+
+
+            print('{:.1f} minutes ({:.1f} hours) left'.format(timeleft, timeleft/60))
+
             if M>100000:
                 n=100000
             else:
@@ -101,7 +111,7 @@ class LensSample():
             M-=n
             zl,sigl,ml,rl,ql=self.L.drawLensPopulation(n)
             zs,ms,xs,ys,qs,ps,rs,mstar,mhalo=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=True)
-            
+
             zl1=zl*1
             sigl1=sigl*1
             for i in range(nsources-1):
@@ -110,7 +120,7 @@ class LensSample():
 
             b=self.E.sie_rein(sigl,zl,zs)
             for i in range(n):
-                l +=1 
+                l +=1
                 self.lens[l]={}
                 if b[i]**2>(xs[i]**2+ys[i]**2):
                     self.lens[l]["lens?"]=True
@@ -124,7 +134,7 @@ class LensSample():
                 for j in range(nsources):
                     self.lens[l]["zs"][j+1]=zs[i+j*n]
                     self.lens[l]["b"][j+1] =b[i+j*n]
-                    
+
                 self.lens[l]["ml"]={}
                 self.lens[l]["rl"]={}
                 self.lens[l]["ms"]={}
@@ -168,15 +178,19 @@ class LensSample():
                         self.lens={}
 
                         if l2%1000==0:
-                            print l2
+                            # print l2
+                            print(l2)
+
 
                         if (l2+1)%10000==0:
-                          if save:  
+                          if save:
                             fn="idealisedlenses/lenspopulation_%s_%i.pkl"%(self.sourcepopulation,l2-10000+1)
-                            print fn
+                            # print fn
+                            print(fn)
                             f=open(fn,'wb')
-                            cPickle.dump(self.reallens,f,2)
-                            f.close()                        
+                            # cPickle.dump(self.reallens,f,2)
+                            pickle.dump(self.reallens,f,2)
+                            f.close()
                             del self.reallens
                             self.reallens={}
 
@@ -185,30 +199,37 @@ class LensSample():
                     self.lens={}
         if save:
             fn="idealisedlenses/lenspopulation_%s_residual_%i.pkl"%(self.sourcepopulation,l2)
-            print l2,fn
+            # print l2,fn
+            print(l2)
+            print(fn)
             f=open(fn,'wb')
-            cPickle.dump(self.reallens,f,2)
-            f.close()                        
+            # cPickle.dump(self.reallens,f,2)
+            pickle.dump(self.reallens,f,2)
+            f.close()
 
         if prunenonlenses==False:
-          if save:  
+          if save:
             f=open("idealisedlenses/nonlenspopulation_%s.pkl"%self.sourcepopulation,'wb')
-            cPickle.dump(self.lens,f,2)
+            # cPickle.dump(self.lens,f,2)
+            pickle.dump(self.lens,f,2)
             f.close()
-            print len(self.lens.keys())
+            # print len(self.lens.keys())
+            print(len(self.lens.keys()))
+
 
         self.lens=self.reallens
 
     def LoadLensPop(self,j=0,sourcepopulation="lsst"):
         f=open("idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
-        self.lens=cPickle.load(f)
+        # self.lens=cPickle.load(f)
+        self.lens=pickle.load(f)
         f.close()
 
 
     def Pick_a_lens(self,i=None,dspl=False,tspl=False):
         if i ==None:
             numpy.random.randint(0,self.n)
-        
+
         self.rli={}
         self.mli={}
         self.msi={}
