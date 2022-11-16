@@ -1,1 +1,3 @@
-import massmodel,pylens,MassModels
+# import massmodel,pylens,MassModels
+
+import pylens

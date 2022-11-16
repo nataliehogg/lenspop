@@ -1,5 +1,7 @@
-import SBProfiles
-from pointSource import PixelizedModel as PM, GaussianModel as GM
+# import SBProfiles
+# from pointSource import PixelizedModel as PM, GaussianModel as GM
+import imageSim.SBProfiles as SBProfiles
+from imageSim.pointSource import PixelizedModel as PM, GaussianModel as GM
 from math import pi
 
 def cnts2mag(cnts,zp):
@@ -19,7 +21,7 @@ class SBModel:
         self.keys.sort()
         if self.keys not in self._SBkeys:
             import sys
-            print 'Not all (or too many) parameters were defined!'
+            print('Not all (or too many) parameters were defined!')
             sys.exit()
         self._baseProfile.__init__(self)
         self.vmap = {}
@@ -114,7 +116,8 @@ class PointSource(GM,PM):
         keys = var.keys()+const.keys()
         keys.sort()
         if keys!=['amp','x','y']:
-            print "Not all parameters defined!",keys
+            print("Not all parameters defined!")
+            print(keys)
             df
         self.keys = keys
         self.values = {}
@@ -132,7 +135,7 @@ class PointSource(GM,PM):
             self.ispix = True
         self.setValues()
         self.name = name
-        self.convolve = None 
+        self.convolve = None
 
     def __setattr__(self,key,value):
         if key=='logamp':
@@ -165,4 +168,3 @@ class PointSource(GM,PM):
         for key in self.vmap:
             self.values[self.vmap[key]] = pars[key]
         self.setValues()
-

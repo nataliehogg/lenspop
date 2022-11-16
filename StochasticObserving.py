@@ -7,7 +7,7 @@ class SO():
     def drawPSFandSB(self,band):
         dat=self.stochasticobservingdata[band]
         k=numpy.random.randint(len(dat[:,0]))
-        return dat[k,0],dat[k,1]       
+        return dat[k,0],dat[k,1]
 
     def CalculateETSB(self,sbs,band):
         et=self.exposuretimes[band]*(len(sbs)*(1./self.nexposures))
@@ -21,7 +21,7 @@ class SO():
         mode=self.strategy
         x=self.strategyx
         if mode == "absolute":
-            if x==0: 
+            if x==0:
                 return 10
             else: return x
         if mode == "percentile":
@@ -51,7 +51,7 @@ class SO():
             return (floor)*self.pixelsize
 
         if mode == "resolveclever":
-            print "warning: the resolveclever code isn't finsihed"
+            print("warning: the resolveclever code isn't finsihed")
             (self.fos*self.bl[1]*self.pixelsize)
             numpy.sort(a)
             la=len(a)

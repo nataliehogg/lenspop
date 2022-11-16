@@ -3,7 +3,7 @@ import numpy
 from pylens import *
 from imageSim import profiles,convolve,SBModels
 import distances as D
-import cPickle
+# import cPickle # never used
 import indexTricks as iT
 import numpy,pylab
 from imageSim import profiles,convolve,models
@@ -50,9 +50,9 @@ class FastLensSim(SO,S2N):
         self.zeroexposuretime=survey.zeroexposuretime
         #-----------------------------------------------------
         ###do some setup
-	self.xl=(self.side-1.)/2.
-	self.yl=(self.side-1.)/2.
-	self.x,self.y = iT.coords((self.side,self.side))
+        self.xl=(self.side-1.)/2.
+        self.yl=(self.side-1.)/2.
+        self.x,self.y = iT.coords((self.side,self.side))
         self.r2 = (self.x-self.xl)**2+(self.y-self.yl)**2
 
         self.pixelunits=False
@@ -93,9 +93,9 @@ class FastLensSim(SO,S2N):
 
 #===========================================================================
 
-    def trytoconvert(self,par,p):        
+    def trytoconvert(self,par,p):
         try:return par/p
-        except NameError:print "warning one of the parameters is not defined"
+        except NameError:print("warning one of the parameters is not defined")
 
 #===========================================================================
 
@@ -107,7 +107,7 @@ class FastLensSim(SO,S2N):
                 self.rl[band]=self.trytoconvert(r[band],self.pixelsize)
         self.ml=m
         self.ql=q
-        
+
         self.deltaxl=(numpy.random.rand()-0.5)*2*jiggle
         self.deltayl=(numpy.random.rand()-0.5)*2*jiggle
         if jiggle!=0:
@@ -178,7 +178,7 @@ class FastLensSim(SO,S2N):
         for band in bands:
             unlensedtotalsrcflux=10**(-(self.ms[sourcenumber][band]-self.zeropoints[band])/2.5)
             sm[band]=srcmodel*unlensedtotalsrcflux
-        
+
             if sm[band].max()>0:
                 self.totallensedsrcmag[sourcenumber][band]=-2.5*numpy.log10(sm[band].sum())+self.zeropoints[band]
             else:
@@ -225,7 +225,7 @@ class FastLensSim(SO,S2N):
           convolvedmodel=convolvedgal*1
 
           convolvedsrc={}
-            
+
           for sourcenumber in self.sourcenumbers:
             convolvedsrc[sourcenumber]=convolve.convolve(self.sourcemodel[sourcenumber][band],self.psfFFT[band],False)[0]
             convolvedsrc[sourcenumber][convolvedsrc[sourcenumber]<0]=0
@@ -240,7 +240,7 @@ class FastLensSim(SO,S2N):
           #skybackground per second per square arcsecond
           background=(10**(-(self.SB[band]-self.zeropoints[band])/2.5))*(self.pixelsize**2)
           tot_bg=background*exposurecorrection
-          
+
 
           sigma=((convolvedmodel+tot_bg)+self.nexposures*(self.readnoise**0.5)**2)**.5
 
@@ -251,7 +251,7 @@ class FastLensSim(SO,S2N):
           fakeLens/=exposurecorrection
           sigma/=exposurecorrection
 
-          self.image[band]=fakeLens*1 
+          self.image[band]=fakeLens*1
           self.fakeLens[band]=fakeLens*1
           self.sigma[band]=sigma*1
           self.fakeResidual[0][band]=fakeLens-convolvedgal
@@ -260,7 +260,7 @@ class FastLensSim(SO,S2N):
                   convolvedsrc[sourcenumber],sigma)
               self.fakeResidual[sourcenumber][band]=\
                   fakeLens-convolvedmodel+convolvedsrc[sourcenumber]
-            
+
 #===========================================================================
     def loadModel(self,ideallens):
         self.galmodel,self.sourcemodel,self.model,self.magnification,self.totallensedsrcmag=ideallens
@@ -279,7 +279,7 @@ class FastLensSim(SO,S2N):
         if stochastic==True:self.stochasticObserving(mode=stochasticmode,SOdraw=SOdraw,musthaveallbands=musthaveallbands)
         if self.seeingtest=="Fail":return None
         if bands==[]:bands=self.bands
-        
+
         if MakeModel:
             self.MakeModel(bands)
 
@@ -288,8 +288,8 @@ class FastLensSim(SO,S2N):
 
         self.ObserveLens(noisy=noisy)
         return [self.galmodel,self.sourcemodel,self.model,self.magnification,self.totallensedsrcmag]
-        
-        
+
+
 #===========================================================================
 
 

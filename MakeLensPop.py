@@ -184,6 +184,9 @@ class LensSample():
 
                         if (l2+1)%10000==0:
                           if save:
+                              # NH: need to fix this; currently doesn't save
+                              # is it due to pickle dump or something else?
+                              # note pickle dump worked for the residual file
                             fn="idealisedlenses/lenspopulation_%s_%i.pkl"%(self.sourcepopulation,l2-10000+1)
                             # print fn
                             print(fn)

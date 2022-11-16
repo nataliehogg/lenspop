@@ -1,5 +1,6 @@
 from __init__ import *
-import cPickle
+# import cPickle
+import pickle
 #import pyfits
 import sys
 import pylab as plt
@@ -59,7 +60,8 @@ for survey in surveys:
     S[survey].rfac=float(2)
 
 
-t0=time.clock()
+# t0=time.clock()
+t0 = time.perf_counter()
 
 #for sourcepop in ["lsst","cosmos"]:
 for sourcepop in ["lsst"]:
@@ -78,19 +80,25 @@ for sourcepop in ["lsst"]:
 
   for i in range(nall):
     if i%10000==0:
-        print "about to load"
+        # print "about to load"
+        print("about to load")
         L.LoadLensPop(i,sourcepop)
-        print i,nall
+        # print i,nall
+        print(i)
+        print(nall)
 
     if i!=0:
         if i%10000==0 or i==100 or i==300 or i==1000 or i==3000:
-            t1=time.clock()
+            # t1=time.clock()
+            t1=time.perf_counter()
             ti=(t1-t0)/float(i)
             tl=(nall-i)*ti
             tl/=60#mins
             hl=numpy.floor(tl/(60))
             ml=tl-(hl*60)
-            print i,"%ih%im left"%(hl,ml)
+            # print i,"%ih%im left"%(hl,ml)
+            print(i)
+            print('{} hours, {} mins left'.format(hl, ml))
 
     lenspars=L.lens[i]
     if lenspars["lens?"]==False:
@@ -102,7 +110,7 @@ for sourcepop in ["lsst"]:
     for mi in [lenspars["ml"],lenspars["ms"][1]]:
         mi["VIS"]=(mi["r_SDSS"]+mi["i_SDSS"]+mi["z_SDSS"])/3
 
-    
+
 
 
     #if lenspars["zl"]>1 or lenspars["zl"]<0.2 or lenspars["ml"]["i_SDSS"]<17 or lenspars["ml"]["i_SDSS"]>22:continue# this is a CFHT compare quick n dirty test
@@ -142,7 +150,7 @@ for sourcepop in ["lsst"]:
                     lenspars["pf"][survey][src]=False
                     lenspars["rfpf"][survey][src]=False
                 continue#try next survey
-        else: 
+        else:
             S[survey].loadModel(model)
             S[survey].stochasticObserving(mode="MP",SOdraw=SOdraw)
             if S[survey].seeingtest=="Fail":
@@ -162,7 +170,7 @@ for sourcepop in ["lsst"]:
         rfpf={}
         rfsn={}
         for src in S[survey].sourcenumbers:
-            rfpf[src]=False      
+            rfpf[src]=False
             rfsn[src]=[0]
             lenspars["mag"][src]=mag[src]
             lenspars["msrc"][src]=msrc[src]
@@ -185,7 +193,7 @@ for sourcepop in ["lsst"]:
         #e.g.
         #found=Myfinder(S[survey].image,S[survey].sigma,\
         #                    S[survey].psf,S[survey].psfFFT)
-        #NB/ image,sigma, psf, psfFFT are dictionaries 
+        #NB/ image,sigma, psf, psfFFT are dictionaries
         #    The keywords are the filters, e.g. "g_SDSS", "VIS" etc
 
         #then save any outputs you'll need to the lenspars dictionary:
@@ -218,7 +226,7 @@ for sourcepop in ["lsst"]:
         ###
 
         L.lens[i]=None #delete used data for memory saving
-            
+
     accept=False
     for survey in surveys:
         if lenspars["pf"][survey][1]:
@@ -228,10 +236,11 @@ for sourcepop in ["lsst"]:
         #S[survey].display(band="VIS",bands=["VIS","VIS","VIS"])
         #if Si>100:exit()
         Si+=1
-        SSPL[Si]=lenspars.copy() 
+        SSPL[Si]=lenspars.copy()
         if (Si+1)%1000==0:
             f=open("LensStats/%s_%s_Lens_stats_%i.pkl"%(experiment,sourcepop,chunk),"wb")
-            cPickle.dump([frac,SSPL],f,2)
+            # cPickle.dump([frac,SSPL],f,2)
+            pickle.dump([frac,SSPL],f,2)
             f.close()
             SSPL={} # reset SSPL or memory fills up
             chunk+=1
@@ -239,13 +248,15 @@ for sourcepop in ["lsst"]:
     del L.lens[i]
 
   f=open("LensStats/%s_%s_Lens_stats_%i.pkl"%(experiment,sourcepop,chunk),"wb")
-  cPickle.dump([frac,SSPL],f,2)
+  # cPickle.dump([frac,SSPL],f,2)
+  pickle.dump([frac,SSPL],f,2)
   f.close()
-  print Si
+  # print Si
+  print(Si)
 
 bl=[]
 for j in SSPL.keys():
-    try: 
+    try:
         if SSPL[j]["rfpf"][survey][1]:
             bl.append(SSPL[j]["b"][1])
     except KeyError:pass

@@ -1,5 +1,7 @@
-import profiles
-from pointSource import PixelizedModel as PM, GaussianModel as GM
+# import profiles
+# from pointSource import PixelizedModel as PM, GaussianModel as GM
+import imageSim.profiles as profiles
+from imageSim.pointSource import PixelizedModel as PM, GaussianModel as GM
 from math import pi
 
 def cnts2mag(cnts,zp):
@@ -23,7 +25,7 @@ class Sersic(profiles._Sersic):
         keys.sort()
         if keys not in _SersicPars:
             import sys
-            print "Not all parameters defined!"
+            print("Not all parameters defined!")
             sys.exit()
         profiles._Sersic.__init__(self)
         self.invar = var
@@ -88,7 +90,7 @@ class Gauss(profiles._Gauss):
             keys.sort()
         if keys!=['amp','pa','q','r0','sigma','x','y']:
             import sys
-            print "Not all parameters defined!"
+            print("Not all parameters defined!")
             sys.exit()
         profiles._Gauss.__init__(self)
         self.invar = var
@@ -151,7 +153,8 @@ class PointSource(GM,PM):
         keys = var.keys()+const.keys()
         keys.sort()
         if keys!=['amp','x','y']:
-            print "Not all parameters defined!",keys
+            print("Not all parameters defined!")
+            print(keys)
             df
         self.keys = keys
         self.values = {}
@@ -169,7 +172,7 @@ class PointSource(GM,PM):
             self.ispix = True
         self.setValues()
         self.name = name
-        self.convolve = None 
+        self.convolve = None
 
     def __setattr__(self,key,value):
         if key=='logamp':
