@@ -1,25 +1,27 @@
-from __init__ import *
-# import cPickle
+from __init__ import * # this imports all the below; we can make this more explicit
+#from PopulationFunctions import *
+#from MakeLensPop import *
+#from Surveys import *
+#from FastLensSim import *
+
 import pickle
-#import pyfits
 import sys
-import pylab as plt
 import time
-sigfloor=200
 
-L=LensSample(reset=False,sigfloor=sigfloor,cosmo=[0.3,0.7,0.7])
+sigfloor = 200 # something to do with the splines in MakeLensPop
+cosmo = [0.3, 0.7, 0.7] # omega_m, omega_L, h; here at least is something that can definitely be improved
 
-experiment="Euclid"
-frac=0.1
+L = LensSample(reset=False, sigfloor=sigfloor, cosmo=cosmo)
 
-a=20#SN threshold
-b=3#Magnification threshold
+# default settings
+experiment = 'Euclid'
+frac       = 0.1 # sky fraction i.e. 10%
+a          = 20 # SNR threshold
+b          = 3 # Magnification threshold
+c          = 1000 # second SNR cut
+d          = 1000 # third SNR cut
 
-c=1000
-d=1000
-
-
-#experiment="DES"
+# user defined settings overwrite above defaults
 if len(sys.argv)>1:
     experiment=sys.argv[1]
     frac=float(sys.argv[2])
@@ -29,8 +31,8 @@ if len(sys.argv)>3:
     #c=int(sys.argv[5])
     #d=int(sys.argv[6])
 
-firstod=1
-nsources=1
+firstod  = 1 # ?
+nsources = 1 # ?
 
 
 surveys=[]
@@ -100,6 +102,7 @@ for sourcepop in ["lsst"]:
             print(i)
             print('{} hours, {} mins left'.format(hl, ml))
 
+    print(L)
     lenspars=L.lens[i]
     if lenspars["lens?"]==False:
         del L.lens[i]

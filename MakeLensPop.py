@@ -49,6 +49,9 @@ class SourcePopulation(SourcePopulation_):
         elif population=="lsst":
             self.loadlsst()
 
+        # what I don't get is that this is making all the extant lenses
+        # and then instead of just discarding some it regenerates new lenses??
+
 
         #NB all the functions are in the inherited from class.
 
@@ -109,7 +112,9 @@ class LensSample():
             else:
                 n=M*1
             M-=n
+
             zl,sigl,ml,rl,ql=self.L.drawLensPopulation(n)
+
             zs,ms,xs,ys,qs,ps,rs,mstar,mhalo=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=True)
 
             zl1=zl*1
@@ -123,6 +128,7 @@ class LensSample():
                 l +=1
                 self.lens[l]={}
                 if b[i]**2>(xs[i]**2+ys[i]**2):
+                    # NH: I think all these = need to be appends don't they?
                     self.lens[l]["lens?"]=True
                 else:
                     self.lens[l]["lens?"]=False
@@ -168,55 +174,42 @@ class LensSample():
                     self.lens[l]["mstar"][j+1]=mhalo[i+j*n]
 
 
-                if self.lens[l]["lens?"]:
-                    if prunenonlenses:
+                if self.lens[l]["lens?"]: # NH: what is this doing? for each l it looks to see if lens? is True or False
+                    if prunenonlenses == True: # NH: not keen on this happening on the fly... why not save all then remove in a separate step?
                         l2+=1
 
-                        self.reallens[l2]=self.lens[l].copy()
+                        self.reallens[l2] = self.lens[l].copy()
 
-                        del self.lens
-                        self.lens={}
+                        del self.lens # NH: isn't this just killing everything? maybe if we just comment this out and run, everything will be saved ok
+                        self.lens={} # NH: no because what should be saves is self.reallens. anyway still not sure why this step is here
 
-                        if l2%1000==0:
-                            # print l2
-                            print(l2)
-
+                        # if l2%1000==0:
+                        #     # print l2
+                        #     print(l2)
 
                         if (l2+1)%10000==0:
-                          if save:
-                              # NH: need to fix this; currently doesn't save
-                              # is it due to pickle dump or something else?
-                              # note pickle dump worked for the residual file
-                            fn="idealisedlenses/lenspopulation_%s_%i.pkl"%(self.sourcepopulation,l2-10000+1)
-                            # print fn
-                            print(fn)
-                            f=open(fn,'wb')
-                            # cPickle.dump(self.reallens,f,2)
-                            pickle.dump(self.reallens,f,2)
-                            f.close()
+                            filename = 'idealisedlenses/lenspopulation_{}_{}.pkl'.format(self.sourcepopulation, l2-10000+1) # NH: also got no clue what all these hardcoded numbers are
+                            out_file = open(filename, 'wb')
+                            # pickle.dump(self.reallens, out_file, 2) # NH: so the 2 here is the protocol; we ought to increase this, though two is backwards compatible for py3
+                            # 5 is fastest, which may be relevant for the amount of data we have
+                            # https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice
+                            pickle.dump(self.reallens, out_file, protocol=5)
+                            out_file.close()
+
                             del self.reallens
                             self.reallens={}
 
-                elif prunenonlenses:
-                    del self.lens
-                    self.lens={}
         if save:
-            fn="idealisedlenses/lenspopulation_%s_residual_%i.pkl"%(self.sourcepopulation,l2)
-            # print l2,fn
-            print(l2)
-            print(fn)
-            f=open(fn,'wb')
-            # cPickle.dump(self.reallens,f,2)
-            pickle.dump(self.reallens,f,2)
+            fn = "idealisedlenses/lenspopulation_%s_residual_%i.pkl"%(self.sourcepopulation,l2)
+            f = open(fn, 'wb')
+            pickle.dump(self.reallens, f, protocol=5) # NH: update protocol
             f.close()
 
         if prunenonlenses==False:
           if save:
             f=open("idealisedlenses/nonlenspopulation_%s.pkl"%self.sourcepopulation,'wb')
-            # cPickle.dump(self.lens,f,2)
-            pickle.dump(self.lens,f,2)
+            pickle.dump(self.lens, f, protocol=5) # NH: update protocol
             f.close()
-            # print len(self.lens.keys())
             print(len(self.lens.keys()))
 
 
@@ -224,7 +217,6 @@ class LensSample():
 
     def LoadLensPop(self,j=0,sourcepopulation="lsst"):
         f=open("idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
-        # self.lens=cPickle.load(f)
         self.lens=pickle.load(f)
         f.close()
 
