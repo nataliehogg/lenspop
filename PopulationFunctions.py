@@ -352,84 +352,32 @@ class LensPopulation_(Population):
 #====================================================================================
 
 class SourcePopulation_(Population):
-    def  __init__(self,D=None,reset=False,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS'],cosmo=[0.3,0.7,0.7],population="cosmos"
+    def  __init__(self,
+                  D=None,
+                  reset=False,
+                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS'],
+                  cosmo=[0.3,0.7,0.7],
+                  population='lsst'
                   ):
-        self.bands=bands
 
-        self.beginRedshiftDependentRelation(D,reset)
+        self.bands = bands
 
-        if population=="cosmos":
-            self.loadcosmos()
-        elif population=="lsst":
-            self.loadlsst()
+        self.beginRedshiftDependentRelation(D, reset)
 
-    def loadcosmos(self):
-        self.population="cosmos"
-
-        try:
-            #load pickledcosmos
-            cosmosdump=open("cosmosdata.pkl","rb")
-            # cosmosphotozs=cPickle.load(cosmosdump)
-            cosmosphotozs=pickle.load(cosmosdump)
-        except IOError or EOFError:
-            import re
-            photozs=open('../Forecaster/cosmos_zphot_mag25.tbl','r').readlines()[10:]
-            splinedump=open("cosmosdata.pkl","wb")
-            cols=len(re.split(r"\s+",photozs[0])[1:-1])
-            rows=len(photozs)
-            cosmosphotozs=numpy.empty((cols,rows))
-            for i in range(len(photozs)):
-                line=photozs[i]
-                l=numpy.array(re.split(r"\s+",line)[1:-1])
-                l[l=='null']=999
-                cosmosphotozs[:,i]=l
-            cosmosphotozs=cosmosphotozs.astype(numpy.float)
-            raz=cosmosphotozs[2,:]
-            decz=cosmosphotozs[3,:]
-            zc=cosmosphotozs[6,:]
-            cosmosphotozs=cosmosphotozs[:,((zc<10)&(zc>0))]
-            # cPickle.dump(cosmosphotozs,splinedump,2)
-            pickle.dump(cosmosphotozs,splinedump,2)
-
-        self.zc=cosmosphotozs[6,:]
-
-        self.m={}
-        index={}
-        index["g_SDSS"]=23 #lets pretend sdss_g=cfht_g etc
-        index["r_SDSS"]=24
-        index["i_SDSS"]=25
-        index["z_SDSS"]=26
-        index["Y_UKIRT"]=27 #pretend Y_DES=ic whatever ic is...
-        index["F814W_ACS"]=25 # But we'll make do with F814==i
-
-        for band in self.bands:
-          if band!="VIS":
-            self.m[band]=cosmosphotozs[index[band],:]
-        self.m["VIS"]=(self.m["r_SDSS"]+self.m["i_SDSS"]+self.m["z_SDSS"])/3
-
-        self.Mv=cosmosphotozs[-1,:]
-
-        self.mstar=cosmosphotozs[-1,:]*0.
-        self.mhalo=cosmosphotozs[-1,:]*0.
+        self.loadlsst()
 
     def loadlsst(self):
-        self.population="lsst"
-        # import cPickle
 
-        # don't know how this file was encoded but I can't open it
-        # f=open('lsst.1sqdegree_catalog2.pkl','rb')
-        # # print "new lsst catalogue"
-        # print("new lsst catalogue")
-        # # data=cPickle.load(f)
-        # data=pickle.load(f)
-        # f.close()
+        self.population = 'lsst'
 
         print("new lsst catalogue")
-        data=numpy.genfromtxt('lsst.1sqdegree_catalog2.txt')
 
-        self.zc=data[:,2]
-        self.m={}
+        data = numpy.genfromtxt('lsst.1sqdegree_catalog2.txt', delimiter=',') # NH: added the delimiter type so it reads the file correctly
+
+        self.zc = data[:,2]
+
+        self.m = {}
+
         #print data[:,0].max()-data[:,0].min()
         #print data[:,1].max()-data[:,1].min()
 
@@ -446,7 +394,7 @@ class SourcePopulation_(Population):
 
     def RofMz(self,M,z,scatter=True,band=None):#band independent so far
     #{mosleh et al}, {Huang, Ferguson et al.}, Newton SLACS XI.
-        r_phys=((M/-19.5)**-0.22)*((1.+z)/5.)**(-1.2)
+        r_phys=((M/-19.5)**-0.22)*((1.+z)/5.)**(-1.2) # equation 5 1507.02657
         # is the same as
         R=-(M+18.)/4.
         r_phys=(10**R)*((1.+z)/1.6)**(-1.2)
@@ -488,17 +436,21 @@ class SourcePopulation_(Population):
 
         self.ps=numpy.random.random_sample(number )*180
 
-        #cosmos has a source density of ~0.015 per square arcsecond
-        if self.population=="cosmos":
-            fac=(0.015)**-0.5
-            a=fac*(sourceplaneoverdensity)**-.5
-        #lsst sim has a source density of ~0.06 per square arcsecond
-        elif self.population=="lsst":
-            fac=(0.06)**-0.5
-            a=fac*(sourceplaneoverdensity)**-.5
+        # #cosmos has a source density of ~0.015 per square arcsecond
+        # if self.population=="cosmos":
+        #     fac=(0.015)**-0.5
+        #     a=fac*(sourceplaneoverdensity)**-.5
+        # #lsst sim has a source density of ~0.06 per square arcsecond
+        # elif self.population=="lsst":
+        #     fac=(0.06)**-0.5
+        #     a=fac*(sourceplaneoverdensity)**-.5
 
-        else:
-            pass
+        #lsst sim has a source density of ~0.06 per square arcsecond
+        fac=(0.06)**-0.5
+        a=fac*(sourceplaneoverdensity)**-.5
+
+        # else:
+        #     pass
 
         self.xs=(numpy.random.random_sample(number)-0.5)*a
         self.ys=(numpy.random.random_sample(number)-0.5)*a
@@ -527,7 +479,7 @@ if __name__=="__main__":
 
     #L=LensPopulation_(reset=True,sigfloor=100)
 
-    S=SourcePopulation_(reset=False,population="cosmos")
+    # S=SourcePopulation_(reset=False,population="cosmos")
     S2=SourcePopulation_(reset=False,population="lsst")
 
 
@@ -537,9 +489,9 @@ if __name__=="__main__":
     # print len(S2.Mv[S2.m["i_SDSS"]<25])/(0.2**2)/(60.**2)
     # print len(S2.Mv)/(0.2**2)/(60.**2)
 
-    print(numpy.median(S.Mv[S.m["i_SDSS"]<25])-numpy.median(S2.Mv[S2.m["i_SDSS"]<25]))
-    print(len(S.Mv[S.m["i_SDSS"]<25])*1./(len(S2.Mv[S2.m["i_SDSS"]<25])*100))
-    print(len(S.Mv)/(60.**2)/2.)
+    # print(numpy.median(S.Mv[S.m["i_SDSS"]<25])-numpy.median(S2.Mv[S2.m["i_SDSS"]<25]))
+    # print(len(S.Mv[S.m["i_SDSS"]<25])*1./(len(S2.Mv[S2.m["i_SDSS"]<25])*100))
+    # print(len(S.Mv)/(60.**2)/2.)
     print(len(S2.Mv[S2.m["i_SDSS"]<25])/(0.2**2)/(60.**2))
     print(len(S2.Mv)/(0.2**2)/(60.**2))
 
