@@ -74,17 +74,20 @@ class S2N():
                     SNr[band]=0
 
 
-            self.bestband[src],dummy = max(SNr.iteritems(), key=lambda x:x[1])
-            
+            # self.bestband[src],dummy = max(SNr.iteritems(), key=lambda x:x[1])
+
+            self.bestband[src],dummy = max(SNr.items(), key=lambda x:x[1]) #  NH: python 2 -> 3
+
+
             self.passfail[src]=False
             try:
                 if self.SN[src][self.bestband[src]][2]>min(SNcutB) and \
                    self.SN[src][self.bestband[src]][1]>max(SNcutB):
                     self.passfail[src]=True
                     ltype=1
-            except IndexError: 
+            except IndexError:
                 pass
-                
+
 
             try:
                 #print self.SN[src][self.bestband[src]][0],SNcutA,self.mag[src],magcut,self.resolved[src][self.bestband[src]]
@@ -92,7 +95,7 @@ class S2N():
                    (self.mag[src]>magcut) and self.resolved[src][self.bestband[src]]:
                     self.passfail[src]=True
                     ltype=2
-            except IndexError: 
+            except IndexError:
                 pass
 
             if  self.SeeingTest(src,self.bestband[src]) ==False:
@@ -110,7 +113,7 @@ class S2N():
         for src in self.sourcenumbers:
             self.SNRF[src]=[0]
             self.rfpf[src]=False
-        try: 
+        try:
             if self.seeing[bands[0]]==0:
                 return self.rfpf,self.SNRF
         except KeyError:
@@ -118,7 +121,7 @@ class S2N():
         try:
             if self.seeing[bands[1]]==0:
                 return self.rfpf,self.SNRF
-        except KeyError:     
+        except KeyError:
             return self.rfpf,self.SNRF
         if mode=="crossconvolve":
             seeing=(self.seeing[bands[1]]**2+self.seeing[bands[0]]**2)**.5
@@ -181,7 +184,7 @@ class S2N():
                     self.rfpf[src]=True
             except IndexError: pass
             if self.SeeingTest(src,"RF")==False:
-                self.rfpf[src]=False       
+                self.rfpf[src]=False
                 self.passfail[src]=False
 
             if runringfinder:

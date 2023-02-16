@@ -86,8 +86,8 @@ for sourcepop in ["lsst"]:
         print("about to load")
         L.LoadLensPop(i,sourcepop)
         # print i,nall
-        print(i)
-        print(nall)
+        # print(i)
+        # print(nall)
 
     if i!=0:
         if i%10000==0 or i==100 or i==300 or i==1000 or i==3000:
@@ -99,10 +99,10 @@ for sourcepop in ["lsst"]:
             hl=numpy.floor(tl/(60))
             ml=tl-(hl*60)
             # print i,"%ih%im left"%(hl,ml)
-            print(i)
+            # print(i)
             print('{} hours, {} mins left'.format(hl, ml))
 
-    print(L)
+    # print(L)
     lenspars=L.lens[i]
     if lenspars["lens?"]==False:
         del L.lens[i]
@@ -255,7 +255,7 @@ for sourcepop in ["lsst"]:
   pickle.dump([frac,SSPL],f,2)
   f.close()
   # print Si
-  print(Si)
+  # print(Si)
 
 bl=[]
 for j in SSPL.keys():

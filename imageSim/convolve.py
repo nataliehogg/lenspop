@@ -60,7 +60,11 @@ def convolve(image,psf,doPSF=True,edgeCheck=False):
         c1 = c2 = c/2
         if c%2==1:
             c1 = c/2+1
-        boxdslice = (slice(r1,datadim1+r1),slice(c1,datadim2+c1))
+
+        # boxdslice = (slice(r1,datadim1+r1),slice(c1,datadim2+c1))
+
+        boxdslice = (slice(int(r1), int(datadim1+r1)), slice(int(c1), int(datadim2+c1))) # NH: slice values must be int
+
         boxd[boxdslice] = image
     else:
         boxd = image
@@ -75,7 +79,10 @@ def convolve(image,psf,doPSF=True,edgeCheck=False):
             r1 = r/2+1
             c = boxp.shape[1]-psf.shape[1]
             c1 = c/2+1
-            boxpslice = (slice(r1,psf.shape[0]+r1),slice(c1,psf.shape[1]+c1))
+            # boxpslice = (slice(r1,psf.shape[0]+r1),slice(c1,psf.shape[1]+c1))
+
+            boxpslice = (slice(int(r1), int(psf.shape[0]+r1)), slice(int(c1), int(psf.shape[1]+c1))) # NH: slice values must be int
+
             boxp[boxpslice] = psf.copy()
         # Store the transform of the image after the first iteration
         a = (numpy.fft.rfft2(boxp))

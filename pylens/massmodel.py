@@ -1,4 +1,4 @@
-import models
+from pylens import models # NH: fix broken import
 from math import pi
 
 _PowerLawPars = [['b','eta','pa','q','x','y'],['b','eta','q','theta','x','y']]
@@ -17,11 +17,18 @@ class PowerLaw(models._PowerLaw):
         if var is None:
             var = {}
         # Check for all keys to be set
-        keys = var.keys()+const.keys()
-        keys.sort()
+        # keys = var.keys()+const.keys()
+        # keys.sort()
+        # NH: in python 2, dict.keys() returns a list of keys
+        # NH: in python 3, it returns a view object
+        # NH: to get the desired behaviour, we need to call list() on the dict.key() objects
+
+        keys = sorted(list(var.keys()) + list(const.keys()))
+
         if keys not in _PowerLawPars:
             import sys
-            print "Not all parameters defined!"
+            # print "Not all parameters defined!"
+            print('Not all parameters defined!')
             sys.exit()
         models._PowerLaw.__init__(self)
         self.keys = keys
@@ -40,7 +47,7 @@ class PowerLaw(models._PowerLaw):
     def __setattr__(self,key,value):
         if key=='pa':
             self.__dict__['pa'] = value
-            if value is not None: 
+            if value is not None:
                 self.__dict__['theta'] = value*pi/180.
         elif key=='theta':
             if value is not None:
@@ -70,11 +77,16 @@ class ExtShear(models._ExtShear):
         if var is None:
             var = {}
         # Check for all keys to be set
-        keys = var.keys()+const.keys()
-        keys.sort()
+        # keys = var.keys()+const.keys()
+        # keys.sort()
+
+        keys = sorted(list(var.keys()) + list(const.keys())) # NH: as in line 26
+
         if keys not in _ExtShearPars:
             import sys
-            print "Not all parameters defined!",keys
+            # print "Not all parameters defined!",keys
+            print('Not all parameters defined!')
+            print(keys)
             sys.exit()
         models._ExtShear.__init__(self)
         self.keys = keys
@@ -115,7 +127,9 @@ class MassSheet(models._MassSheet):
         keys.sort()
         if keys not in _MassSheetPars:
             import sys
-            print "Not all parameters defined!",keys
+            # print "Not all parameters defined!",keys
+            print('Not all parameters defined!')
+            print(keys)
             sys.exit()
         models._MassSheet.__init__(self)
         self.keys = keys
@@ -154,7 +168,8 @@ class NFW(models._NFW):
         keys.sort()
         if keys not in _PowerLawPars:
             import sys
-            print "Not all parameters defined!"
+            # print "Not all parameters defined!"
+            print('Not all parameters defined!')
             sys.exit()
         models._PowerLaw.__init__(self)
         self.keys = keys
@@ -171,7 +186,7 @@ class NFW(models._NFW):
     def __setattr__(self,key,value):
         if key=='pa':
             self.__dict__['pa'] = value
-            if value is not None: 
+            if value is not None:
                 self.__dict__['theta'] = value*pi/180.
         elif key=='theta':
             if value is not None:
@@ -183,5 +198,3 @@ class NFW(models._NFW):
     def setPars(self):
         for key in self.vmap:
             self.__setattr__(key,self.vmap[key].value)
-
-

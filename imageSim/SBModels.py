@@ -17,8 +17,9 @@ class SBModel:
     def __init__(self,name,pars,convolve=0):
         if 'amp' not in pars.keys():
             pars['amp'] = 1.
-        self.keys = pars.keys()
-        self.keys.sort()
+        # self.keys = pars.keys()
+        # self.keys.sort()
+        self.keys = sorted(pars.keys()) # NH: python 2 -> 3
         if self.keys not in self._SBkeys:
             import sys
             print('Not all (or too many) parameters were defined!')
@@ -113,8 +114,9 @@ class PointSource(GM,PM):
             const = {}
         if var is None:
             var = {}
-        keys = var.keys()+const.keys()
-        keys.sort()
+        # keys = var.keys()+const.keys()
+        # keys.sort()
+        keys = sorted(var.keys()+const.keys(s)) # NH: python 2 -> 3
         if keys!=['amp','x','y']:
             print("Not all parameters defined!")
             print(keys)

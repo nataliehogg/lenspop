@@ -11,6 +11,8 @@ import pylab as plt
 from Surveys import Survey
 from StochasticObserving import SO
 from SignaltoNoise import S2N
+from pylens import massmodel # NH: added missing import
+from pylens import pylenser # NH: renamed pylens -> pylenser to avoid janky name clashes, not sure if it will work...
 
 class FastLensSim(SO,S2N):
     def __init__(self,surveyname,fractionofseeing=1):
@@ -169,7 +171,7 @@ class FastLensSim(SO,S2N):
         srcnorm=unlensedsrcmodel.sum()
         unlensedsrcmodel/=srcnorm
 
-        srcmodel=pylens.lens_images(lenses,src,[self.x,self.y],getPix=True,csub=5)[0]
+        srcmodel=pylenser.lens_images(lenses,src,[self.x,self.y],getPix=True,csub=5)[0] # NH: pylens -> pylenser
         srcmodel[srcmodel<0]=0
         srcmodel/=srcnorm
 

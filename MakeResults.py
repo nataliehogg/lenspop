@@ -1,20 +1,21 @@
 from __init__ import *
-import cPickle
-import pyfits
+# import cPickle
+import pickle
+# import pyfits # NH: pip install fails but never used
 import sys,os
 import pylab as plt
 import glob
 
-params = {
-   'axes.labelsize': 14,
-   'text.fontsize': 14,
-   'legend.fontsize': 10,
-   'xtick.labelsize': 10,
-   'ytick.labelsize': 10,
-   'text.usetex': False,
-    'figure.figsize': [6, 4]
-   }
-plt.rcParams.update(params)
+# params = {
+#    'axes.labelsize': 14,
+#    'text.fontsize': 14,
+#    'legend.fontsize': 10,
+#    'xtick.labelsize': 10,
+#    'ytick.labelsize': 10,
+#    'text.usetex': False,
+#     'figure.figsize': [6, 4]
+#    }
+# plt.rcParams.update(params)
 
 sourcepops=["lsst"]
 
@@ -45,7 +46,7 @@ else:
     surveystoread=[str(experiment)]
     experiment=experiment[:-1]
 
-    
+
 for survey in surveystoread:
   for sourcepop in sourcepops:
     if survey[-2]=="a":
@@ -59,7 +60,7 @@ for survey in surveystoread:
     filename="%s_%s_lists.pkl"%(survey,sourcepop)
     lensparsfile="lenses_%s.txt"%survey
     f=open(lensparsfile,"w")
-    print 
+    print
     #os.system("rm %s"%filename) #this line resets the read-in
     bl={}
     zs={}
@@ -81,7 +82,7 @@ for survey in surveystoread:
         mag[key]=[]
         rs[key]=[]
         weights[key]=[]
-       
+
     if experiment=="CFHT":
       frac=42000.*1./150.
       bands=["g_SDSS","r_SDSS","i_SDSS"]
@@ -93,7 +94,7 @@ for survey in surveystoread:
     elif experiment=="Euclid":
       frac=42000.*1./15000.
       bands=["VIS"]
-                
+
     elif experiment=="DES":
       frac=42000.*1./5000.
       bands=["g_SDSS","r_SDSS","i_SDSS"]
@@ -107,18 +108,21 @@ for survey in surveystoread:
 
     chunki=0
     ilist=[]
-    print survey
+    # print survey
+    print('running {}'.format(survey))
     for chunk in filelist:
-        print chunki
+        # print chunki
+        # print(chunki)
         chunki+=1
         f2=open(chunk,"rb")
-        fracsky,sspl=cPickle.load(f2)
+        # fracsky,sspl=cPickle.load(f2)
+        fracsky,sspl=pickle.load(f2)
         fract=frac*fracsky
         f2.close()
         I=0
         for i in sspl.keys():
-            if i in ilist:  
-                continue 
+            if i in ilist:
+                continue
             else:
                 try:
                     sspl[i]["seeing"][survey]
@@ -156,7 +160,7 @@ for survey in surveystoread:
                     #print sspl[i]["mag"][1]*sspl[i]["rs"][1],
                     try:
                         (sspl[i]["b"][1]**2-sspl[i]["rs"][1]**2)**0.5
-                    except FloatingPointError: print 0
+                    except FloatingPointError: print(0)
                 except KeyError:
                   pass
                 try:
@@ -164,7 +168,7 @@ for survey in surveystoread:
                     bb=sspl[i]["bestband"][survey][1]
                     if sspl[i]["mag"][1]<3:continue
                     if sspl[i]["SN"][survey][1][bb][0]<20:continue
-                    
+
                     bl["resolved"].append(sspl[i]["b"][1])
                     weights["resolved"].append(1./fract)
                     zs["resolved"].append(sspl[i]["zs"][1])
@@ -209,14 +213,21 @@ for survey in surveystoread:
     else:
         surveyname=survey
 
-    print survey, "will find",
-    print numpy.sum(numpy.array(weights["resolved"]).ravel()),
-    print "lenses assuming poisson limited galaxy subtraction in all bands, or",
-    print numpy.sum(numpy.array(weights["rfpf"]).ravel()), 
-    print "lenses in the g-i difference images"
+    # print survey, "will find",
+    # print numpy.sum(numpy.array(weights["resolved"]).ravel()),
+    # print "lenses assuming poisson limited galaxy subtraction in all bands, or",
+    # print numpy.sum(numpy.array(weights["rfpf"]).ravel()),
+    # print "lenses in the g-i difference images"
+
+    nlenses = numpy.sum(numpy.array(weights["resolved"]).ravel())
+    nlenses_gi = numpy.sum(numpy.array(weights["rfpf"]).ravel())
+
+    print('{} will find {} lenses assuming Poisson limited galaxy subtraction in all bands'.format(survey, nlenses))
+    print('or {} lenses in the g-i difference images.'.format(nlenses_gi))
 
     f=open(filename,"wb")
-    cPickle.dump([weights,bl,zs,rs,ms,zl,sigl,ql,mag],f,2)
+    # cPickle.dump([weights,bl,zs,rs,ms,zl,sigl,ql,mag],f,2)
+    pickle.dump([weights,bl,zs,rs,ms,zl,sigl,ql,mag],f,2)
     f.close()
 
 
