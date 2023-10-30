@@ -1,6 +1,7 @@
 from __init__ import *
 # import cPickle
-import pickle
+# import pickle
+import pickle5 as pickle
 # import pyfits # NH: pip install fails but never used
 import sys,os
 import pylab as plt

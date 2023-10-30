@@ -1,7 +1,8 @@
 import distances
 from scipy import interpolate
 # import cPickle
-import pickle
+# import pickle
+import pickle5 as pickle
 import numpy
 import math
 import indexTricks as iT

@@ -4,7 +4,8 @@ from __init__ import * # this imports all the below; we can make this more expli
 #from Surveys import *
 #from FastLensSim import *
 
-import pickle
+# import pickle
+import pickle5 as pickle
 import sys
 import time
 
