@@ -112,9 +112,31 @@ class Survey():
             twodi=numpy.array([[0.8,19.2],[0.8,19.2]])
             self.stochasticobservingdata=[twodg,twodi]
 
-        elif Name=="COSMOS":
-            pass
-
+        elif Name=="COSMOS-Web":
+            '''
+            settings for the short wavelength channel of NIRCam observing the COSMOS field (i.e. COSMOS-Web, a JWST Cycle 1 treasury program)
+            zeropoints: https://jwst-docs.stsci.edu/files/182256933/224166043/1/1695068757137/NRC_ZPs_1126pmap.txt
+            sky brightness (surface brightness? saturation??) from Tab 1: https://jwst-docs.stsci.edu/jwst-near-infrared-camera/nircam-performance/nircam-bright-source-limits
+            gain, read noise: Table 1 of https://jwst-docs.stsci.edu/jwst-near-infrared-camera/nircam-instrumentation/nircam-detector-overview/nircam-detector-performance
+            '''
+            self.pixelsize=0.031 # NIRCam short wavelength pixel scale (long wavelength is 0.063)
+            self.side=200 #  no idea what this is, using Euclid
+            self.bands=['F115W', 'F150W', 'F277W', 'F444W']
+            self.zeropoints=[28.02, 28.02, 26,49, 26.49] # zeropoints for Vega, Vega-Sirius and AB for both filters are all very similar; we use AB
+            self.zeroexposuretime=1. # no idea what this is, using Euclid
+            self.skybrightnesses=[16.19, 16.06, 15.6, 14.07] # these are the saturations, not sure if that's correct quantity or units...
+            self.exposuretimes=[257, 257, 257, 257] # 257 secs per exposure
+            self.gains=[2.05, 2.05, 1.82, 1.82] # 2.05 +/- 0.4; 1.82 +/- 0.4 for the long wavelength
+            self.seeing=[0.2, 0.2, 0.2, 0.2] # I had no idea space-based telescopes had seeing; putting the Euclid numbers here
+            self.nexposures=[8, 8, 8, 8] # 8 exposures per visit
+            self.degrees_of_survey= 0.54 # deg^2 for NIRCam; the MIRI area is 0.19 deg^2 but we don't care about that for lensing
+            self.readnoise=(15.77) # 15.77 +/0.94 for short wavelength channel; 13.25 +/- 0.08 for long wavelength -- don't think we can pass an array here
+            twod115 = numpy.array([[0.2, 16.19],[0.2, 16.19]]) # F115W
+            twod150 = numpy.array([[0.2, 16.06],[0.2, 16.06]]) # F150W
+            twod277 = numpy.array([[0.2, 15.6], [0.2, 15.6]]) # F277W
+            twod440 = numpy.array([[0.2, 14.07], [0.2, 14.07]]) # F440W
+            # these are 2d pdfs of seeing/surface(?) brightness
+            self.stochasticobservingdata=[twod115, twod150, twod277, twod440]
 
         elif Name=="Euclid":
             self.pixelsize=0.1
