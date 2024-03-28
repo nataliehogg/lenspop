@@ -158,7 +158,9 @@ class Population(RedshiftDependentRelation):
 
 class LensPopulation_(Population):
     def  __init__(self,zlmax=2,sigfloor=100,D=None,reset=True,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS'],cosmo=[0.3,0.7,0.7]
+                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
+                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
+                  cosmo=[0.3,0.7,0.7]
                   ): #sadface
         self.sigfloor=sigfloor
         self.zlmax=zlmax
@@ -184,7 +186,8 @@ class LensPopulation_(Population):
             #check all the necessary colours are included
             redocolours=False
             for band in self.bands:
-                if band not in bands:redocolours=True
+                if band not in bands:
+                    redocolours=True
             if redocolours:
                 self.Colourspline()
                 self.lensPopSplineDump()
@@ -387,6 +390,17 @@ class SourcePopulation_(Population):
         self.m["z_SDSS"]=data[:,6]
         self.m["F814W_ACS"]=data[:,5] # we'll make do with F814==i
         self.m["Y_UKIRT"]=data[:,6]*99 #there is no Y band data atm
+
+        # this is extremely sketchy
+        # the closest SDSS band to the NIRCam filters is the z band which peaks at around 9000A
+        # the F115W filter on NIRCam peaks at around 11000A, and the others are even longer wavelength of course
+        # given that the numbers in each column of the data file are all extremely similar I have hope that this is marginally ok
+        # i.e. whatever these numbers are they do not seem very filter-dependent
+        self.m["JWST_NIRCam_F115W"]=data[:,6]
+        self.m["JWST_NIRCam_F150W"]=data[:,6]
+        self.m["JWST_NIRCam_F277W"]=data[:,6]
+        self.m["JWST_NIRCam_F444W"]=data[:,6]
+
         self.mstar=data[:,12]
         self.mhalo=data[:,13]
         self.m["VIS"]=(self.m["r_SDSS"]+self.m["i_SDSS"]+self.m["z_SDSS"])/3
@@ -465,7 +479,9 @@ class SourcePopulation_(Population):
 
 class AnalyticSourcePopulation_(SourcePopulation_):
     def  __init__(self,D=None,reset=False,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT'],cosmo=[0.3,0.7,0.7]
+                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
+                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
+                  cosmo=[0.3,0.7,0.7]
                   ):
         self.bands=bands
         self.beginRedshiftDependentRelation(D,reset)
@@ -480,7 +496,7 @@ if __name__=="__main__":
     #L=LensPopulation_(reset=True,sigfloor=100)
 
     # S=SourcePopulation_(reset=False,population="cosmos")
-    S2=SourcePopulation_(reset=False,population="lsst")
+    S2=SourcePopulation_(reset=False, population="lsst")
 
 
     # print numpy.median(S.Mv[S.m["i_SDSS"]<25])-numpy.median(S2.Mv[S2.m["i_SDSS"]<25])
