@@ -19,7 +19,8 @@ import glob
 
 sourcepops=["lsst"]
 
-experiment="Euclid"
+experiment="COSMOS-Web"
+# experiment="Euclid"
 #experiment="CFHT"
 #experiment="LSST"
 #experiment="DES"
@@ -103,8 +104,20 @@ for survey in surveystoread:
       frac=42000.*1./20000.
       bands=["g_SDSS","r_SDSS","i_SDSS"]
 
+    elif experiment=="COSMOS-Web":
+        frac=42000.*1./0.54
+        bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
 
-    filelist=glob.glob("LensStats/%s_%s_Lens_stats_*.pkl"%(experiment,sourcepop))
+    print(experiment)
+    print(sourcepop)
+
+
+    # filelist=glob.glob("LensStats/%s_%s_Lens_stats_*.pkl"%(experiment,sourcepop))
+
+    filelist=glob.glob("LensStats/COSMOS-Web_lsst_Lens_stats_0.pkl")
+
+    frac =42000.*1./0.54
+    bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
 
     chunki=0
     ilist=[]
@@ -120,6 +133,7 @@ for survey in surveystoread:
         fract=frac*fracsky
         f2.close()
         I=0
+        print(sspl[1])
         for i in sspl.keys():
             if i in ilist:
                 continue

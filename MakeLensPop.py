@@ -10,7 +10,8 @@ from PopulationFunctions import *
 
 class LensPopulation(LensPopulation_):
     def  __init__(self,zlmax=2,sigfloor=250,D=None,reset=True,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS']
+                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
+                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
                   ): #sadface
         self.sigfloor=sigfloor
         self.zlmax=zlmax
@@ -40,7 +41,9 @@ class LensPopulation(LensPopulation_):
 
 class SourcePopulation(SourcePopulation_):
     def  __init__(self,D=None,reset=False,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT'],population="cosmos"
+                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
+                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
+                  population="cosmos"
                   ):
         self.bands=bands
         self.beginRedshiftDependentRelation(D,reset)
@@ -64,7 +67,9 @@ class LensSample():
     Generate_Lens_Pop to get a fairly drawn lens population
     """
     def  __init__(self,D=None,reset=False,zlmax=2,sigfloor=100,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT'],cosmo=[0.3,0.7,0.7],sourcepop="lsst"
+                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
+                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
+                  cosmo=[0.3,0.7,0.7], sourcepop="lsst"
                   ):
         self.sourcepopulation=sourcepop
         if D==None:

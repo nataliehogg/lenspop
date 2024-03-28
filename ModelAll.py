@@ -52,6 +52,8 @@ if experiment=="LSST":
     surveys+=["LSSTb"] #Best Single epoch image
     surveys+=["LSSTa"] #full coadd (Gaussianised)
     #print "only doing LSSTc"
+if experiment=="COSMOS-Web":
+    surveys+=["COSMOS-Web"]
 
 
 S={}
