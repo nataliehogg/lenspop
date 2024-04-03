@@ -14,8 +14,8 @@ cosmo = [0.3, 0.7, 0.7] # omega_m, omega_L, h; here at least is something that c
 L = LensSample(reset=False, sigfloor=sigfloor, cosmo=cosmo)
 
 # default settings
-experiment = 'Euclid'
-frac       = 0.1 # sky fraction i.e. 10%
+experiment = 'COSMOS-Web'
+frac       = 0.1 #0.1 # sky fraction i.e. 10%
 a          = 20 # SNR threshold
 b          = 3 # Magnification threshold
 c          = 1000 # second SNR cut
@@ -30,6 +30,13 @@ if len(sys.argv)>3:
     b=int(sys.argv[4])
     #c=int(sys.argv[5])
     #d=int(sys.argv[6])
+
+print('sky fraction simulated: {}'.format(frac))
+if experiment=='COSMOS-Web':
+    area = 0.54
+    sky_area = 42000
+    weighting = area/(sky_area*frac)
+    print('weighting to be applied (COSMOS-Web: {}'.format(weighting))
 
 firstod  = 1 # ?
 nsources = 1 # ?

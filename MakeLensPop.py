@@ -138,10 +138,10 @@ class LensSample():
                 else:
                     self.lens[l]["lens?"]=False
 
-                self.lens[l]["b"]={}
-                self.lens[l]["zs"]={}
-                self.lens[l]["zl"]=zl[i]
-                self.lens[l]["sigl"]=sigl[i]
+                self.lens[l]["b"]={} # Einstein radius
+                self.lens[l]["zs"]={} # source redshift
+                self.lens[l]["zl"]=zl[i] # lens redshift
+                self.lens[l]["sigl"]=sigl[i] # velocity dispersion
                 for j in range(nsources):
                     self.lens[l]["zs"][j+1]=zs[i+j*n]
                     self.lens[l]["b"][j+1] =b[i+j*n]

@@ -1,6 +1,6 @@
 import indexTricks as iT
 import numpy
-from pylens import *
+# from pylens import *
 from imageSim import profiles,convolve,SBModels
 import distances as D
 # import cPickle # never used

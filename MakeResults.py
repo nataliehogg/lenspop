@@ -1,29 +1,10 @@
 from __init__ import *
-# import cPickle
 import pickle
-# import pyfits # NH: pip install fails but never used
 import sys,os
 import pylab as plt
 import glob
 
-# params = {
-#    'axes.labelsize': 14,
-#    'text.fontsize': 14,
-#    'legend.fontsize': 10,
-#    'xtick.labelsize': 10,
-#    'ytick.labelsize': 10,
-#    'text.usetex': False,
-#     'figure.figsize': [6, 4]
-#    }
-# plt.rcParams.update(params)
-
 sourcepops=["lsst"]
-
-experiment="COSMOS-Web"
-# experiment="Euclid"
-#experiment="CFHT"
-#experiment="LSST"
-#experiment="DES"
 
 if len(sys.argv)>1:
     experiment=sys.argv[1]
@@ -45,8 +26,7 @@ elif experiment=="LSST":
     surveystoread+=["LSSTa"]
 else:
     surveystoread=[str(experiment)]
-    experiment=experiment[:-1]
-
+    # experiment=experiment[:-1]
 
 for survey in surveystoread:
   for sourcepop in sourcepops:
@@ -58,9 +38,12 @@ for survey in surveystoread:
         surveyname=survey[:-1]+"_optimal_coadd"
     else:
         surveyname=survey
-    filename="%s_%s_lists.pkl"%(survey,sourcepop)
-    lensparsfile="lenses_%s.txt"%survey
-    f=open(lensparsfile,"w")
+
+    filename = "{}_{}_lists.pkl".format(survey, sourcepop)
+
+    lensparsfile = "lenses_{}.txt".format(survey)
+
+    f = open(lensparsfile,"w")
     print
     #os.system("rm %s"%filename) #this line resets the read-in
     bl={}
@@ -72,7 +55,7 @@ for survey in surveystoread:
     ms={}
     mag={}
     weights={}
-    for key in ["resolved","rfpf"]:
+    for key in ["resolved", "rfpf"]:
         bl[key]=[]
         zs[key]=[]
         rs[key]=[]
@@ -108,16 +91,7 @@ for survey in surveystoread:
         frac=42000.*1./0.54
         bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
 
-    print(experiment)
-    print(sourcepop)
-
-
-    # filelist=glob.glob("LensStats/%s_%s_Lens_stats_*.pkl"%(experiment,sourcepop))
-
-    filelist=glob.glob("LensStats/COSMOS-Web_lsst_Lens_stats_0.pkl")
-
-    frac =42000.*1./0.54
-    bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
+    filelist=glob.glob("LensStats/{}_{}_Lens_stats_*.pkl".format(experiment,sourcepop))
 
     chunki=0
     ilist=[]
@@ -133,7 +107,7 @@ for survey in surveystoread:
         fract=frac*fracsky
         f2.close()
         I=0
-        print(sspl[1])
+        # print(sspl[1])
         for i in sspl.keys():
             if i in ilist:
                 continue
