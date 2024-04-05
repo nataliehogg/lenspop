@@ -175,31 +175,10 @@ class LensPopulation_(Population):
         self.beginRedshiftDependentRelation(D,reset)
         self.beginLensPopulation(D,reset)
 
-
     def beginLensPopulation(self,D,reset):
         print('I am in beginLensPopulation')
-        reset=True
-        if reset!=True:
-            try:
-            #load Lens-population splines
-                splinedump=open("lenspopsplines.pkl","rb")
-                # self.cdfdNdzasspline,self.cdfdsigdzasspline,self.dNdzspline,self.zlbins,zlmax,sigfloor,self.colourspline,bands=cPickle.load(splinedump)
-                self.cdfdNdzasspline,self.cdfdsigdzasspline,self.dNdzspline,self.zlbins,zlmax,sigfloor,self.colourspline,bands=pickle.load(splinedump)
-            except IOError or EOFError or ValueError:
-                self.lenspopfunctions()
-            #check sigfloor and zlmax are same as requested
-            if zlmax!=self.zlmax or self.sigfloor!=sigfloor:
-                self.lenspopfunctions()
-            #check all the necessary colours are included
-            redocolours=False
-            for band in self.bands:
-                if band not in bands:
-                    redocolours=True
-            if redocolours:
-                self.Colourspline()
-                self.lensPopSplineDump()
-        else:
-            self.lenspopfunctions()
+        self.lenspopfunctions()
+
 
     def lenspopfunctions(self):
         print('I am in lenspopfunctions')
