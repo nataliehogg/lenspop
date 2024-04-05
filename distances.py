@@ -14,6 +14,7 @@ warnings.warn("Default cosmology is Om=0.3,Ol=0.7,h=0.7,w=-1 and distance units 
 
 class Distance():
     def __init__(self,cosmo=[0.3,0.7,0.7]):
+        print('I am in Distances init')
         self.OMEGA_M = cosmo[0]
         self.OMEGA_L = cosmo[1]
         self.h = cosmo[2]
@@ -29,17 +30,20 @@ class Distance():
         self.volume = self.comoving_volume
 
     def set(self,cosmo):
+        print('I am in Distances set')
         self.OMEGA_M = cosmo[0]
         self.OMEGA_L = cosmo[1]
         self.h = cosmo[2]
 
     def reset(self):
+        print('I am in Distances reset')
         self.OMEGA_M = 0.3
         self.OMEGA_L = 0.7
         self.h = 0.7
         self.w = -1.
 
     def age(self,z):
+        print('I am in Distances age')
         from scipy import integrate
         f = lambda zp,m,l,k : (m/zp+k+l*zp**2)**-0.5
         om = self.OMEGA_M
@@ -48,6 +52,7 @@ class Distance():
         return (9.778/self.h)*integrate.romberg(f,1e-300,1/(1.+z),(om,ol,ok))
 
     def comoving_distance(self,z1,z2=0.):
+        print('I am in Distances comoving')
         from scipy import integrate
         if z2<z1:
             z1,z2 = z2,z1
@@ -71,6 +76,7 @@ class Distance():
         return (c/self.h)*integrate.quad(f,z1,z2,(om,ol,ok))[0]/1e5
 
     def comoving_transverse_distance(self,z1,z2=0.):
+        print('I am in Distances comoving transverse')
         dc = 1e5*self.comoving_distance(z1,z2)/(c/self.h)
         ok = 1.-self.OMEGA_M-self.OMEGA_L
         if ok>0:
@@ -85,14 +91,17 @@ class Distance():
         return (c/self.h)*dtc/1e5
 
     def angular_diameter_distance(self,z1,z2=0.):
+        print('I am in Distances angular')
         if z2<z1:
             z1,z2 = z2,z1
         return self.comoving_transverse_distance(z1,z2)/(1.+z2)
 
     def luminosity_distance(self,z):
+        print('I am in Distances luminosity')
         return (1.+z)*self.comoving_transverse_distance(z)
 
     def comoving_volume(self,z1,z2=0.):
+        print('I am in Distances comoving')
         from scipy import integrate
         if z2<z1:
             z1,z2 = z2,z1
@@ -103,10 +112,12 @@ class Distance():
         return 4*pi*(c/self.h)*integrate.romberg(f,z1,z2,(om,ol,ok))/1e5
 
     def rho_crit(self,z):
+        print('I am in Distances rho_crit')
         H2 = (self.OMEGA_M*(1+z)**3 + self.OMEGA_L)*(self.h/10.)**2
         return 3*H2/(8.*pi*G)
 
     def distance_modulus(self,z):
+        print('I am in Distances distance_modulus')
         from math import log10
         if z>0:return 5*log10(self.luminosity_distance(z)*1e5)
         else: return 0

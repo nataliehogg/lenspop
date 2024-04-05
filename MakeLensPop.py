@@ -9,16 +9,16 @@ import pylab as plt
 from PopulationFunctions import *
 
 class LensPopulation(LensPopulation_):
-    def  __init__(self,zlmax=2,sigfloor=250,D=None,reset=True,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
+    def  __init__(self, zlmax=2, sigfloor=250, D=None, reset=True,
+                  bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
                   ): #sadface
         self.sigfloor=sigfloor
         self.zlmax=zlmax
         self.bands=bands
 
-        self.beginRedshiftDependentRelation(D,reset)
-        self.beginLensPopulation(D,reset)
+        self.beginRedshiftDependentRelation(D, reset)
+        self.beginLensPopulation(D, reset)
 
     def phi(self,sigma,z):
     #you can change this, but remember to reset the splines if you do.
@@ -40,17 +40,19 @@ class LensPopulation(LensPopulation_):
 
 
 class SourcePopulation(SourcePopulation_):
-    def  __init__(self,D=None,reset=False,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
+    def  __init__(self, D=None, reset=False,
+                  bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
-                  population="cosmos"
+                  population="jaguar"
                   ):
         self.bands=bands
-        self.beginRedshiftDependentRelation(D,reset)
+        self.beginRedshiftDependentRelation(D, reset)
         if population=="cosmos":
             self.loadcosmos()
         elif population=="lsst":
             self.loadlsst()
+        elif population=="jaguar":
+            self.loadjaguar()
 
         # what I don't get is that this is making all the extant lenses
         # and then instead of just discarding some it regenerates new lenses??
@@ -66,10 +68,10 @@ class LensSample():
     Wrapper for all the other objects so you can just call it, and then run
     Generate_Lens_Pop to get a fairly drawn lens population
     """
-    def  __init__(self,D=None,reset=False,zlmax=2,sigfloor=100,
-                  bands=['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
+    def  __init__(self, D=None, reset=False, zlmax=2, sigfloor=100,
+                  bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
-                  cosmo=[0.3,0.7,0.7], sourcepop="lsst"
+                  cosmo=[0.3,0.7,0.7], sourcepop="jaguar"
                   ):
         self.sourcepopulation=sourcepop
         if D==None:
@@ -120,7 +122,8 @@ class LensSample():
 
             zl,sigl,ml,rl,ql=self.L.drawLensPopulation(n)
 
-            zs,ms,xs,ys,qs,ps,rs,mstar,mhalo=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=True)
+            # zs,ms,xs,ys,qs,ps,rs,mstar,mhalo=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=True)
+            zs,ms,xs,ys,qs,ps,rs=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=False)
 
             zl1=zl*1
             sigl1=sigl*1
@@ -161,8 +164,8 @@ class LensSample():
                 self.lens[l]["rs"]={}
                 self.lens[l]["qs"]={}
                 self.lens[l]["ps"]={}
-                self.lens[l]["mstar"]={}
-                self.lens[l]["mhalo"]={}
+                # self.lens[l]["mstar"]={}
+                # self.lens[l]["mhalo"]={}
 
                 for j in range(nsources):
                     self.lens[l]["ms"][j+1]={}
@@ -175,8 +178,8 @@ class LensSample():
                     self.lens[l]["rs"][j+1]=rs[i+j*n]
                     self.lens[l]["qs"][j+1]=qs[i+j*n]
                     self.lens[l]["ps"][j+1]=ps[i+j*n]
-                    self.lens[l]["mhalo"][j+1]=mstar[i+j*n]
-                    self.lens[l]["mstar"][j+1]=mhalo[i+j*n]
+                    # self.lens[l]["mhalo"][j+1]=mstar[i+j*n]
+                    # self.lens[l]["mstar"][j+1]=mhalo[i+j*n]
 
 
                 if self.lens[l]["lens?"]: # NH: what is this doing? for each l it looks to see if lens? is True or False
@@ -226,35 +229,6 @@ class LensSample():
         f.close()
 
 
-    def Pick_a_lens(self,i=None,dspl=False,tspl=False):
-        if i ==None:
-            numpy.random.randint(0,self.n)
-
-        self.rli={}
-        self.mli={}
-        self.msi={}
-        self.msi2={}
-        self.msi3={}
-
-        for band in self.L.bands:
-            self.rli[band]=self.rl[band][i]
-            self.mli[band]=self.ml[band][i]
-        for band in self.S.bands:
-            self.msi[band]=self.ms[band][i]
-            if dspl or tspl:
-                self.msi2[band]=self.ms2[band][i]
-                if tspl:self.msi3[band]=self.ms3[band][i]
-
-        preselection=self.apply_preselection(self.mli["i_SDSS"],self.zl[i])
-        if dspl==False and tspl==False:
-            return [self.mli,self.rli,self.ql[i],self.bl[i]],[self.msi,self.xs[i],self.yl[i],self.qs[i],self.ps[i],self.rs[i]],[self.zl[i],self.zs[i]],preselection
-        elif tspl==False:
-            return [self.mli,self.rli,self.ql[i],self.bl[i]],[self.msi,self.xs[i],self.yl[i],self.qs[i],self.ps[i],self.rs[i]],[self.bl2[i],self.msi2,self.xs2[i],self.yl2[i],self.qs2[i],self.ps2[i],self.rs2[i]],[self.zl[i],self.zs[i],self.zs2[i],self.sigl[i],self.Mvs[i],self.r_phys[i]],preselection
-
-        else:
-            return [self.mli,self.rli,self.ql[i],self.bl[i]],    [self.msi,self.xs[i],self.yl[i],self.qs[i],self.ps[i],self.rs[i]],     [self.bl2[i],self.msi2,self.xs2[i],self.yl2[i],self.qs2[i],self.ps2[i],self.rs2[i]],     [self.bl3[i],self.msi3,self.xs3[i],self.yl3[i],self.qs3[i],self.ps3[i],self.rs3[i]],     [self.zl[i],self.zs[i],self.zs2[i],self.zs3[i],self.sigl[i],self.Mvs[i],self.r_phys[i]],     preselection
-
-
     def apply_preselection(self,imag,z):
         if imag<15: return False
         if imag>23:return False
@@ -262,10 +236,12 @@ class LensSample():
         return True
 
 if __name__ == "__main__":
+    print('I am in main')
     import distances
     fsky=1
     D=distances.Distance()
-    Lpop=LensPopulation(reset=True,sigfloor=100,zlmax=2,D=D)
-    Ndeflectors=Lpop.Ndeflectors(2,zmin=0,fsky=1)
-    L=LensSample(reset=False,sigfloor=100,cosmo=[0.3,0.7,0.7],sourcepop="lsst")
-    L.Generate_Lens_Pop(int(Ndeflectors),firstod=1,nsources=1,prunenonlenses=True)
+    Lpop=LensPopulation(reset=True, sigfloor=100, zlmax=2, D=D)
+    Ndeflectors=Lpop.Ndeflectors(2, zmin=0, fsky=1)
+    # L=LensSample(reset=False,sigfloor=100,cosmo=[0.3,0.7,0.7],sourcepop="lsst")
+    L=LensSample(reset=False, sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")
+    L.Generate_Lens_Pop(int(Ndeflectors), firstod=1, nsources=1, prunenonlenses=True)
