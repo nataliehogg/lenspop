@@ -200,43 +200,6 @@ for sourcepop in ["lsst"]:
         lenspars["rfpf"][survey]=rfpf
         lenspars["rfsn"][survey]=rfsn
 
-        ###
-        #This is where you can add your own lens finder
-        #e.g.
-        #found=Myfinder(S[survey].image,S[survey].sigma,\
-        #                    S[survey].psf,S[survey].psfFFT)
-        #NB/ image,sigma, psf, psfFFT are dictionaries
-        #    The keywords are the filters, e.g. "g_SDSS", "VIS" etc
-
-        #then save any outputs you'll need to the lenspars dictionary:
-        #lenspars["my_finder_result"]=found
-
-        ###
-
-        #If you want to save the images (it may well be a lot of data!):
-        #import pyfits #(or the astropy equivalent)
-
-        #folder="where_to_save_fits_images"
-        #folder="%s/%i"%(folder,i)
-        #for band in S[survey].bands:
-            #img=S[survey].image[band]
-            #sig=S[survey].sigma[band]
-            #psf=S[survey].psf[band]
-            #resid=S[survey].fakeResidual[0][band]#The lens subtracted
-
-        #resid contains the lensed source, with the lens subtracted
-        #assuming the subtraction is poisson noise limited (i.e. ideal)
-
-            #pyfits.PrimaryHDU(img).writeto("%s/image_%s.fits"%(folder,band),\
-                #                               clobber=True)
-            #pyfits.PrimaryHDU(sig).writeto("%s/sigma_%s.fits"%(folder,band),\
-                #                               clobber=True)
-            #pyfits.PrimaryHDU(psf).writeto("%s/psf_%s.fits"%(folder,band),\
-                #                               clobber=True)
-            #pyfits.PrimaryHDU(resid).writeto("%s/galsub_%s.fits"%(folder,band),clobber=True)
-
-        ###
-
         L.lens[i]=None #delete used data for memory saving
 
     accept=False

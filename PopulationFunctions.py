@@ -1,8 +1,7 @@
 import distances
 from scipy import interpolate
-# import cPickle
 import pickle
-import numpy
+import numpy as np
 import math
 import indexTricks as iT
 
@@ -17,59 +16,22 @@ from astropy.io import fits
 #====================================================================================
 
 class RedshiftDependentRelation():
-    def __init__(self,D=None,reset=False,cosmo=[0.3,0.7,0.7]):
+    def __init__(self, D=None, #reset=False,
+                 cosmo=[0.3,0.7,0.7]):
         print('I am in RedshiftDependentRelation')
-        self.beginRedshiftDependentRelation(D,reset=reset,cosmo=cosmo)
+        self.beginRedshiftDependentRelation(D, cosmo=cosmo)
 
-    def beginRedshiftDependentRelation(self,D,reset,zmax=10,cosmo=[0.3,0.7,0.7]):
-        self.zmax=zmax
-        self.zbins,self.dz=numpy.linspace(0,self.zmax,401,retstep=True)
-        self.z2bins,self.dz2=numpy.linspace(0,self.zmax,201,retstep=True)
+    def beginRedshiftDependentRelation(self, D, zmax=10, cosmo=[0.3,0.7,0.7]):
+        self.zmax = zmax
+        self.zbins, self.dz = np.linspace(0, self.zmax, 401, retstep=True)
+        self.z2bins, self.dz2 = np.linspace(0, self.zmax, 201, retstep=True)
         if D==None:
             import distances
             D=distances.Distance(cosmo=cosmo)
         self.D=D
 
-        if reset!=True:
-            try:
-            #load useful redshift splines
-                splinedump=open("redshiftsplines.pkl","rb")
-                # self.Da_spline,self.Dmod_spline,self.volume_spline,self.Da_bispline=cPickle.load(splinedump)
-                self.Da_spline,self.Dmod_spline,self.volume_spline,self.Da_bispline=pickle.load(splinedump)
-            except IOError or EOFError:
-                self.redshiftfunctions()
-        else:
-            self.redshiftfunctions()
-
-    def redshiftfunctions(self):
-        D=self.D
-        zbins=self.zbins
-        z2bins=self.z2bins
-        Dabins=zbins*0.0
-        Dmodbins=zbins*0.0
-        Da2bins=numpy.zeros((z2bins.size,z2bins.size))
-        volumebins=zbins*0.0
-        for i in range(zbins.size):
-            Dabins[i]=D.Da(zbins[i])
-            Dmodbins[i]=D.distance_modulus(zbins[i])
-            volumebins[i]=D.volume(zbins[i])
-        for i in range(z2bins.size):
-            for j in range(z2bins.size):
-                if j>i:
-                    Da2bins[i,j]=D.Da(z2bins[i],z2bins[j])
-
-        self.Da_spline=interpolate.splrep(zbins,Dabins)
-        self.Dmod_spline=interpolate.splrep(zbins,Dmodbins)
-
-        self.volume_spline=interpolate.splrep(zbins,volumebins)
-
-        z2d=iT.coords((z2bins.size,z2bins.size))*self.dz2
-        self.Da_bispline=interpolate.RectBivariateSpline(z2bins,z2bins,Da2bins)
-
-        #pickle the splines
-        splinedump=open("redshiftsplines.pkl","wb")
-        # cPickle.dump([self.Da_spline,self.Dmod_spline,self.volume_spline,self.Da_bispline],splinedump,2)
-        pickle.dump([self.Da_spline,self.Dmod_spline,self.volume_spline,self.Da_bispline],splinedump,2)
+        splinedump = open("redshiftsplines.pkl","rb")
+        self.Da_spline, self.Dmod_spline, self.volume_spline, self.Da_bispline = pickle.load(splinedump)
 
     def Volume(self,z1,z2=None):
         if z2==None:
@@ -107,8 +69,8 @@ class RedshiftDependentRelation():
             except TypeError:z1=[z1]
             try: len(z2)
             except TypeError:z2=[z2]
-            if len(z1)==1 and len(z2)!=1:z1=numpy.ones(len(z2))*z1[0]
-            if len(z2)==1 and len(z1)!=1:z2=numpy.ones(len(z1))*z2[0]
+            if len(z1)==1 and len(z2)!=1:z1=np.ones(len(z2))*z1[0]
+            if len(z2)==1 and len(z1)!=1:z2=np.ones(len(z1))*z2[0]
             assert len(z1)==len(z2),"get it together"
             return z1,z2
 
@@ -116,9 +78,9 @@ class RedshiftDependentRelation():
 
 
 class EinsteinRadiusTools(RedshiftDependentRelation):
-    def  __init__(self,D=None,reset=False):
+    def  __init__(self,D=None):
         print('I am in EinsteinRadiusTools')
-        self.beginRedshiftDependentRelation(D,reset)
+        self.beginRedshiftDependentRelation(D)
         self.c=299792
 
     def sie_sig(self,rein,zl,zs):
@@ -162,7 +124,7 @@ class Population(RedshiftDependentRelation):
 #====================================================================================
 
 class LensPopulation_(Population):
-    def  __init__(self,zlmax=2,sigfloor=100,D=None,reset=True,
+    def  __init__(self, zlmax=2, sigfloor=100, D=None, #reset=True,
                   bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   cosmo=[0.3,0.7,0.7]
@@ -172,10 +134,10 @@ class LensPopulation_(Population):
         self.zlmax=zlmax
         self.bands=bands
 
-        self.beginRedshiftDependentRelation(D,reset)
-        self.beginLensPopulation(D,reset)
+        self.beginRedshiftDependentRelation(D)
+        self.beginLensPopulation(D)
 
-    def beginLensPopulation(self,D,reset):
+    def beginLensPopulation(self,D):
         print('I am in beginLensPopulation')
         self.lenspopfunctions()
 
@@ -190,25 +152,25 @@ class LensPopulation_(Population):
         print('I am in Psigzspline')
         #"""
         #drawing from a 2d pdf is a pain; should probably make this into its own module
-        self.zlbins,self.dzl=numpy.linspace(0,self.zlmax,201,retstep=True)
-        sigmas=numpy.linspace(self.sigfloor,400,401)
+        self.zlbins,self.dzl=np.linspace(0,self.zlmax,201,retstep=True)
+        sigmas=np.linspace(self.sigfloor,400,401)
         self.sigbins=sigmas
         dNdz=self.zlbins*0
-        Csiggivenz=numpy.zeros((sigmas.size,self.zlbins.size))
-        CDFbins=numpy.linspace(0,1,1001)
-        siggivenCz=numpy.zeros((CDFbins.size,self.zlbins.size))
+        Csiggivenz=np.zeros((sigmas.size,self.zlbins.size))
+        CDFbins=np.linspace(0,1,1001)
+        siggivenCz=np.zeros((CDFbins.size,self.zlbins.size))
         for i in range(len(self.zlbins)):
             z=self.zlbins[i]
             dphidsiggivenz=self.phi(sigmas,z)
             phisigspline=interpolate.splrep(sigmas,dphidsiggivenz)
             tot=interpolate.splint(self.sigfloor,500,phisigspline)
-            Csiggivenz[:,i]=numpy.cumsum(dphidsiggivenz)/numpy.sum(dphidsiggivenz)
+            Csiggivenz[:,i]=np.cumsum(dphidsiggivenz)/np.sum(dphidsiggivenz)
             Csiggivenzspline=interpolate.splrep(Csiggivenz[:,i],sigmas)
             siggivenCz[:,i]=interpolate.splev(CDFbins,Csiggivenzspline)
             if z!=0:
                 dNdz[i]=tot*(self.Volume(z)-self.Volume(z-self.dzl))/self.dzl
 
-        Nofzcdf=numpy.cumsum(dNdz)/numpy.sum(dNdz)
+        Nofzcdf=np.cumsum(dNdz)/np.sum(dNdz)
         #import pylab as plt
         #plt.plot(self.zlbins,Nofzcdf)
         #plt.show()
@@ -255,18 +217,18 @@ class LensPopulation_(Population):
         pickle.dump([self.cdfdNdzasspline,self.cdfdNdsigz0asspline,self.cdfdsigdzasspline,self.dNdzspline,self.zlbins,self.zlmax,self.sigfloor,self.colourspline,self.bands],splinedump,2)
 
     def draw_z(self,N):
-        return interpolate.splev(numpy.random.random(N),self.cdfdNdzasspline)
+        return interpolate.splev(np.random.random(N),self.cdfdNdzasspline)
 
     def draw_sigma(self,z):
         try: len(z)
         except TypeError:z=[z]
         if self.nozdependence:
-            sigs =interpolate.splev(numpy.random.random(len(z)),self.cdfdNdsigz0asspline)
+            sigs =interpolate.splev(np.random.random(len(z)),self.cdfdNdsigz0asspline)
             return sigs
         else:
             # print "Warning: drawing from 2dpdf is low accuracy"
             print("Warning: drawing from 2dpdf is low accuracy")
-            return self.cdfdsigdzasspline.ev(numpy.random.random(len(z)),z)
+            return self.cdfdsigdzasspline.ev(np.random.random(len(z)),z)
 
     def draw_zsig(self,N):
         z=self.draw_z(N)
@@ -275,15 +237,15 @@ class LensPopulation_(Population):
 
     def EarlyTypeRelations(self,sigma,z=None,scatter=True,band=None):#z dependence not encoded currently
         #Hyde and Bernardi, M = r band absolute magnitude.
-        V=numpy.log10(sigma)
+        V=np.log10(sigma)
         Mr=(-0.37+(0.37**2-(4*(0.006)*(2.97+V)))**0.5)/(2*0.006)
         if scatter:
-            Mr+=numpy.random.randn(len(Mr))*(0.15/2.4)
+            Mr+=np.random.randn(len(Mr))*(0.15/2.4)
 
         #R=4.72+0.63*Mr+0.02*Mr**2 #rest-frame R_band size.
         R=2.46-2.79*V+0.84*V**2
         if scatter:
-            R+=numpy.random.randn(len(R))*0.11
+            R+=np.random.randn(len(R))*0.11
 
         #convert to observed r band size;
         r_phys = 10**R
@@ -309,7 +271,7 @@ class LensPopulation_(Population):
         sigst=161
         phi=phi_star * \
             ((sigma*1./sigst)**alpha)*\
-            numpy.exp(-(sigma*1./sigst)**beta)*beta/\
+            np.exp(-(sigma*1./sigst)**beta)*beta/\
             math.gamma(alpha*1./beta)/\
             (1.*sigma)
 
@@ -320,12 +282,12 @@ class LensPopulation_(Population):
         # equation 4 of Tom's paper
         x=sigma
         y=0.378-0.000572*x
-        e=numpy.random.rayleigh(y)
+        e=np.random.rayleigh(y)
         q=1-e
         #dont like ultraflattened masses:
         while len(q[q<0.2])>0 or len(q[q>1])>0:
-            q[q<0.2]=1-numpy.random.rayleigh(y[q<0.2])
-            q[q>1]=1-numpy.random.rayleigh(y[q>1])
+            q[q<0.2]=1-np.random.rayleigh(y[q<0.2])
+            q[q>1]=1-np.random.rayleigh(y[q>1])
         return q
 
     def drawLensPopulation(self,number):
@@ -348,7 +310,7 @@ class LensPopulation_(Population):
 class SourcePopulation_(Population):
     def  __init__(self,
                   D=None,
-                  reset=False,
+                  #reset=False,
                   bands= ['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],#['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS'],
                   cosmo=[0.3,0.7,0.7],
                   # population='lsst'
@@ -358,7 +320,7 @@ class SourcePopulation_(Population):
 
         self.bands = bands
 
-        self.beginRedshiftDependentRelation(D, reset)
+        self.beginRedshiftDependentRelation(D)
 
         # self.loadlsst()
 
@@ -379,7 +341,7 @@ class SourcePopulation_(Population):
 
         print("using jaguar catalogue")
 
-        # data = numpy.genfromtxt('lsst.1sqdegree_catalog2.txt', delimiter=',') # NH: added the delimiter type so it reads the file correctly
+        # data = np.genfromtxt('lsst.1sqdegree_catalog2.txt', delimiter=',') # NH: added the delimiter type so it reads the file correctly
 
         # hdul = fits.open('/jaguar/JADES_Q_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; quiescent galaxies only
         hdul = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; star-forming galaxies only
@@ -414,16 +376,16 @@ class SourcePopulation_(Population):
 
         if scatter!=False:
             if scatter==True:scatter=0.35 #dex
-            self.scattered=10**(numpy.random.randn(len(r_phys))*scatter)
+            self.scattered=10**(np.random.randn(len(r_phys))*scatter)
             r_phys*=self.scattered
 
         return r_phys
 
     def draw_flattening_sourcepop(self, N):
         print('I am in draw_flattening_sourcepop') # for jaguar I don't think we need this; it's in the mock already (axis ratio)
-        # y=numpy.ones(N*1.5)*0.3
-        y=numpy.ones(int(N*1.5))*0.3
-        e=numpy.random.rayleigh(y)
+        # y=np.ones(N*1.5)*0.3
+        y=np.ones(int(N*1.5))*0.3
+        e=np.random.rayleigh(y)
         q=1-e
         q=q[q>0.2]
         q=q[:N]
@@ -432,7 +394,7 @@ class SourcePopulation_(Population):
 
     def drawSourcePopulation(self, number, sourceplaneoverdensity=10, returnmasses=False):
         print('I am in drawSourcePopulation')
-        source_index=numpy.random.randint(0,len(self.zc),number*3)
+        source_index=np.random.randint(0,len(self.zc),number*3)
         #source_index=source_index[((self.zc[source_index]<10) & (self.zc[source_index]>0.05))]
         source_index=source_index[:number]
         self.zs=self.zc[source_index]
@@ -451,7 +413,7 @@ class SourcePopulation_(Population):
         self.rs=self.draw_apparent_size(self.r_phys, self.zs)
         self.qs=self.draw_flattening_sourcepop(number)
 
-        self.ps=numpy.random.random_sample(number)*180
+        self.ps=np.random.random_sample(number)*180
 
         #lsst sim has a source density of ~0.06 per square arcsecond
         # fac=(0.06)**-0.5
@@ -466,8 +428,8 @@ class SourcePopulation_(Population):
         fac=(density)**-0.5
         a=density*(sourceplaneoverdensity)**-.5
 
-        self.xs=(numpy.random.random_sample(number)-0.5)*a
-        self.ys=(numpy.random.random_sample(number)-0.5)*a
+        self.xs=(np.random.random_sample(number)-0.5)*a
+        self.ys=(np.random.random_sample(number)-0.5)*a
 
         # if returnmasses:
         #     self.mstar_src=self.mstar[source_index]
@@ -483,4 +445,6 @@ if __name__=="__main__":
 
     # S=SourcePopulation_(reset=False,population="cosmos")
     # S2=SourcePopulation_(reset=False, population="lsst")
-    S2=SourcePopulation_(reset=False, population="jaguar")
+    # S2=SourcePopulation_(reset=False, population="jaguar")
+
+    S2=SourcePopulation_(population="jaguar")

@@ -17,8 +17,8 @@ class LensPopulation(LensPopulation_):
         self.zlmax=zlmax
         self.bands=bands
 
-        self.beginRedshiftDependentRelation(D, reset)
-        self.beginLensPopulation(D, reset)
+        self.beginRedshiftDependentRelation(D)
+        self.beginLensPopulation(D)
 
     def phi(self,sigma,z):
     #you can change this, but remember to reset the splines if you do.
@@ -68,7 +68,8 @@ class LensSample():
     Wrapper for all the other objects so you can just call it, and then run
     Generate_Lens_Pop to get a fairly drawn lens population
     """
-    def  __init__(self, D=None, reset=False, zlmax=2, sigfloor=100,
+    def  __init__(self, D=None, #reset=False,
+                  zlmax=2, sigfloor=100,
                   bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   cosmo=[0.3,0.7,0.7], sourcepop="jaguar"
@@ -77,6 +78,8 @@ class LensSample():
         if D==None:
             import distances
             D=distances.Distance(cosmo=cosmo)
+
+        reset = False
 
         self.L=LensPopulation(reset=reset,sigfloor=sigfloor,zlmax=zlmax,bands=bands,D=D)
 
@@ -107,10 +110,6 @@ class LensSample():
                 tnow=time.perf_counter()
                 ti=(tnow-t0)/float(N-M)
                 timeleft=ti*M/60.
-
-
-            # print M,timeleft," minutes left"
-
 
             print('{:.1f} minutes ({:.1f} hours) left'.format(timeleft, timeleft/60))
 
@@ -243,5 +242,6 @@ if __name__ == "__main__":
     Lpop=LensPopulation(reset=True, sigfloor=100, zlmax=2, D=D)
     Ndeflectors=Lpop.Ndeflectors(2, zmin=0, fsky=1)
     # L=LensSample(reset=False,sigfloor=100,cosmo=[0.3,0.7,0.7],sourcepop="lsst")
-    L=LensSample(reset=False, sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")
+    L=LensSample(#reset=False,
+                 sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")
     L.Generate_Lens_Pop(int(Ndeflectors), firstod=1, nsources=1, prunenonlenses=True)
