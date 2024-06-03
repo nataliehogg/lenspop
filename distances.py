@@ -14,7 +14,6 @@ warnings.warn("Default cosmology is Om=0.3,Ol=0.7,h=0.7,w=-1 and distance units 
 
 class Distance():
     def __init__(self,cosmo=[0.3,0.7,0.7]):
-        print('I am in Distances init')
         self.OMEGA_M = cosmo[0]
         self.OMEGA_L = cosmo[1]
         self.h = cosmo[2]
@@ -30,20 +29,17 @@ class Distance():
         self.volume = self.comoving_volume
 
     def set(self,cosmo):
-        print('I am in Distances set')
         self.OMEGA_M = cosmo[0]
         self.OMEGA_L = cosmo[1]
         self.h = cosmo[2]
 
     def reset(self):
-        print('I am in Distances reset')
         self.OMEGA_M = 0.3
         self.OMEGA_L = 0.7
         self.h = 0.7
         self.w = -1.
 
     def age(self,z):
-        print('I am in Distances age')
         from scipy import integrate
         f = lambda zp,m,l,k : (m/zp+k+l*zp**2)**-0.5
         om = self.OMEGA_M
@@ -107,7 +103,6 @@ class Distance():
         return 4*pi*(c/self.h)*integrate.romberg(f,z1,z2,(om,ol,ok))/1e5
 
     def rho_crit(self,z):
-        print('I am in Distances rho_crit')
         H2 = (self.OMEGA_M*(1+z)**3 + self.OMEGA_L)*(self.h/10.)**2
         return 3*H2/(8.*pi*G)
 

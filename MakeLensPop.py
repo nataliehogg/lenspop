@@ -4,12 +4,13 @@ from scipy import interpolate
 import pickle
 import numpy
 import math
+import time
 import indexTricks as iT
-import pylab as plt
+# import pylab as plt
 from PopulationFunctions import *
 
 class LensPopulation(LensPopulation_):
-    def  __init__(self, zlmax=2, sigfloor=250, D=None, reset=True,
+    def  __init__(self, zlmax=3, sigfloor=250, D=None, reset=True,
                   bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
                   ): #sadface
@@ -69,7 +70,7 @@ class LensSample():
     Generate_Lens_Pop to get a fairly drawn lens population
     """
     def  __init__(self, D=None, #reset=False,
-                  zlmax=2, sigfloor=100,
+                  zlmax=3, sigfloor=100,
                   bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   cosmo=[0.3,0.7,0.7], sourcepop="jaguar"
@@ -91,11 +92,12 @@ class LensSample():
         self.ndeflectors=self.L.Ndeflectors(self.L.zlmax)
         return self.ndeflectors
 
-    def Generate_Lens_Pop(self,N,firstod=1,nsources=1,prunenonlenses=True,save=True):
-        import time
-        # t0=time.clock()
+    def Generate_Lens_Pop(self, N, firstod=1, nsources=1, prunenonlenses=True, save=True):
+
         t0 = time.perf_counter()
-        if prunenonlenses==False: assert N<60000
+
+        if prunenonlenses==False:
+            assert N<60000
 
         self.lens={}
         self.reallens={}
@@ -119,10 +121,11 @@ class LensSample():
                 n=M*1
             M-=n
 
-            zl,sigl,ml,rl,ql=self.L.drawLensPopulation(n)
+            zl, sigl, ml, rl, ql = self.L.drawLensPopulation(n)
 
             # zs,ms,xs,ys,qs,ps,rs,mstar,mhalo=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=True)
-            zs,ms,xs,ys,qs,ps,rs=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=False)
+
+            zs, ms, xs, ys, qs, ps, rs = self.S.drawSourcePopulation(n*nsources, sourceplaneoverdensity=firstod, returnmasses=False)
 
             zl1=zl*1
             sigl1=sigl*1
@@ -183,7 +186,7 @@ class LensSample():
 
                 if self.lens[l]["lens?"]: # NH: what is this doing? for each l it looks to see if lens? is True or False
                     if prunenonlenses == True: # NH: not keen on this happening on the fly... why not save all then remove in a separate step?
-                        l2+=1
+                        l2+=1 # adds one to the number of true lenses
 
                         self.reallens[l2] = self.lens[l].copy()
 
@@ -194,7 +197,7 @@ class LensSample():
                         #     # print l2
                         #     print(l2)
 
-                        if (l2+1)%10000==0:
+                        if (l2+1)%10000==0: # if (l2+1)/10000 has no remainder:
                             filename = 'idealisedlenses/lenspopulation_{}_{}.pkl'.format(self.sourcepopulation, l2-10000+1) # NH: also got no clue what all these hardcoded numbers are
                             out_file = open(filename, 'wb')
                             # pickle.dump(self.reallens, out_file, 2) # NH: so the 2 here is the protocol; we ought to increase this, though two is backwards compatible for py3
@@ -207,7 +210,7 @@ class LensSample():
                             self.reallens={}
 
         if save:
-            fn = "idealisedlenses/lenspopulation_%s_residual_%i.pkl"%(self.sourcepopulation,l2)
+            fn = "idealisedlenses/lenspopulation_%s_residual_%i.pkl"%(self.sourcepopulation, l2)
             f = open(fn, 'wb')
             pickle.dump(self.reallens, f, protocol=5) # NH: update protocol
             f.close()
@@ -222,7 +225,7 @@ class LensSample():
 
         self.lens=self.reallens
 
-    def LoadLensPop(self,j=0,sourcepopulation="lsst"):
+    def LoadLensPop(self,j=0,sourcepopulation="jaguar"):
         f=open("idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
         self.lens=pickle.load(f)
         f.close()
@@ -235,12 +238,12 @@ class LensSample():
         return True
 
 if __name__ == "__main__":
-    print('I am in main')
+    # print('I am in main')
     import distances
     fsky=1
     D=distances.Distance()
-    Lpop=LensPopulation(reset=True, sigfloor=100, zlmax=2, D=D)
-    Ndeflectors=Lpop.Ndeflectors(2, zmin=0, fsky=1)
+    Lpop=LensPopulation(reset=True, sigfloor=100, zlmax=3, D=D)
+    Ndeflectors=Lpop.Ndeflectors(z=3, zmin=0, fsky=1)
     # L=LensSample(reset=False,sigfloor=100,cosmo=[0.3,0.7,0.7],sourcepop="lsst")
     L=LensSample(#reset=False,
                  sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")

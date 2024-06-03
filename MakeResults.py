@@ -4,7 +4,8 @@ import sys,os
 import pylab as plt
 import glob
 
-sourcepops=["lsst"]
+# sourcepops=["lsst"]
+sourcepops=["jaguar"]
 
 if len(sys.argv)>1:
     experiment=sys.argv[1]
@@ -41,10 +42,14 @@ for survey in surveystoread:
 
     filename = "{}_{}_lists.pkl".format(survey, sourcepop)
 
+    print(filename)
+
     lensparsfile = "lenses_{}.txt".format(survey)
 
+    print(lensparsfile)
+
     f = open(lensparsfile,"w")
-    print
+    # print
     #os.system("rm %s"%filename) #this line resets the read-in
     bl={}
     zs={}
@@ -88,7 +93,7 @@ for survey in surveystoread:
       bands=["g_SDSS","r_SDSS","i_SDSS"]
 
     elif experiment=="COSMOS-Web":
-        frac=42000.*1./0.54
+        frac=41253.*1./0.54
         bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
 
     filelist=glob.glob("LensStats/{}_{}_Lens_stats_*.pkl".format(experiment,sourcepop))
@@ -104,6 +109,7 @@ for survey in surveystoread:
         f2=open(chunk,"rb")
         # fracsky,sspl=cPickle.load(f2)
         fracsky,sspl=pickle.load(f2)
+        print('fracsky = {}'.format(fracsky))
         fract=frac*fracsky
         f2.close()
         I=0
@@ -121,10 +127,10 @@ for survey in surveystoread:
                 f.write("%.2f "%sspl[i]["b"][1])
                 f.write("%.2f "%sspl[i]["sigl"])
                 f.write("%.2f "%sspl[i]["ql"])
-                f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
+                #f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
                 for band in bands:
                     f.write("%.2f "%sspl[i]["ml"][band])
-                f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
+                #f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
                 f.write("%.2f "%sspl[i]["xs"][1])
                 f.write("%.2f "%sspl[i]["ys"][1])
                 f.write("%.2f "%sspl[i]["qs"][1])
@@ -165,7 +171,7 @@ for survey in surveystoread:
                     sigl["resolved"].append(sspl[i]["sigl"])
                     ql["resolved"].append(sspl[i]["ql"])
                     mag["resolved"].append(sspl[i]["mag"][1])
-                    ms["resolved"].append(sspl[i]["ms"][1]["g_SDSS"])
+                    #ms["resolved"].append(sspl[i]["ms"][1]["g_SDSS"])
 
                     if sspl[i]["rfpf"][survey][1]:
                         if sspl[i]["rfsn"][survey][1][0]<20:continue
@@ -185,7 +191,7 @@ for survey in surveystoread:
                         sigl["rfpf"].append(sspl[i]["sigl"])
                         ql["rfpf"].append(sspl[i]["ql"])
                         mag["rfpf"].append(sspl[i]["mag"][1])
-                        ms["rfpf"].append(sspl[i]["ms"][1]["g_SDSS"])
+                        #ms["rfpf"].append(sspl[i]["ms"][1]["g_SDSS"])
 
 
                 except KeyError:
@@ -210,8 +216,8 @@ for survey in surveystoread:
     nlenses = numpy.sum(numpy.array(weights["resolved"]).ravel())
     nlenses_gi = numpy.sum(numpy.array(weights["rfpf"]).ravel())
 
-    print('{} will find {} lenses assuming Poisson limited galaxy subtraction in all bands'.format(survey, nlenses))
-    print('or {} lenses in the g-i difference images.'.format(nlenses_gi))
+    print('{} will find {} lenses assuming Poisson limited galaxy subtraction in all bands.'.format(survey, nlenses))
+    # print('or {} lenses in the g-i difference images.'.format(nlenses_gi))
 
     f=open(filename,"wb")
     # cPickle.dump([weights,bl,zs,rs,ms,zl,sigl,ql,mag],f,2)
@@ -220,12 +226,12 @@ for survey in surveystoread:
 
 
 
-bson=numpy.array([2.66,1.24,1.27,2.39,1.41,1.27,1.00,1.3,1.0,1.19,1.22,1.36,1.76,1.19,1.29,1.56,1.04,0.85,1.10,1.23,1.16,0.93,1.03,1.4,0.74,1.21,1.14,1.74,2.03,1.23,2.55,1.05,1.51,4.36,0.94,0.93,3.11,1.79,0.96,1.40,1.3,0.81,1.95,1.66,1.55,1.07,1.06,1.38,0.52,2.16,1.40,1.44])
-plt.hist(bson,bins=numpy.linspace(0,3,16),weights=bson*0+220./len(bson),fc="grey",alpha=0.6)
-a,b=numpy.histogram(bl["rfpf"],bins=numpy.linspace(0,3,31),weights=weights["rfpf"])
-a*=2#double for finer bins
-plt.plot(b[:-1]+(b[1]-b[0])/2.,a,c="k",lw=3,ls="dashed")
-plt.xlabel(r"$\Theta_\mathrm{E}$ (arcsec)")
-plt.ylabel(r"Lenses per $\Theta_\mathrm{E}$ bin")
-plt.tight_layout()
-plt.show()
+# bson=numpy.array([2.66,1.24,1.27,2.39,1.41,1.27,1.00,1.3,1.0,1.19,1.22,1.36,1.76,1.19,1.29,1.56,1.04,0.85,1.10,1.23,1.16,0.93,1.03,1.4,0.74,1.21,1.14,1.74,2.03,1.23,2.55,1.05,1.51,4.36,0.94,0.93,3.11,1.79,0.96,1.40,1.3,0.81,1.95,1.66,1.55,1.07,1.06,1.38,0.52,2.16,1.40,1.44])
+# plt.hist(bson,bins=numpy.linspace(0,3,16),weights=bson*0+220./len(bson),fc="grey",alpha=0.6)
+# a,b=numpy.histogram(bl["rfpf"],bins=numpy.linspace(0,3,31),weights=weights["rfpf"])
+# a*=2#double for finer bins
+# plt.plot(b[:-1]+(b[1]-b[0])/2.,a,c="k",lw=3,ls="dashed")
+# plt.xlabel(r"$\Theta_\mathrm{E}$ (arcsec)")
+# plt.ylabel(r"Lenses per $\Theta_\mathrm{E}$ bin")
+# plt.tight_layout()
+# plt.show()
