@@ -7,11 +7,14 @@ from __init__ import * # this imports all the below; we can make this more expli
 import pickle
 import sys
 import time
+import os
+import fnmatch
+import re
 
 sigfloor = 200 # something to do with the splines in MakeLensPop
 cosmo = [0.3, 0.7, 0.7] # omega_m, omega_L, h; here at least is something that can definitely be improved
 
-L = LensSample(reset=False, sigfloor=sigfloor, cosmo=cosmo)
+L = LensSample(sigfloor=sigfloor, cosmo=cosmo)
 
 # default settings
 experiment = 'COSMOS-Web'
@@ -34,9 +37,9 @@ if len(sys.argv)>3:
 print('sky fraction simulated: {}'.format(frac))
 if experiment=='COSMOS-Web':
     area = 0.54
-    sky_area = 42000
+    sky_area = 41253
     weighting = area/(sky_area*frac)
-    print('weighting to be applied (COSMOS-Web: {}'.format(weighting))
+    print('weighting to be applied (COSMOS-Web): {}'.format(weighting))
 
 firstod  = 1 # ?
 nsources = 1 # ?
@@ -70,12 +73,14 @@ for survey in surveys:
     S[survey].bfac=float(2)
     S[survey].rfac=float(2)
 
+# this saves having to remember and hardcode the number of idealised lenses each time
+for file in os.listdir('/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/idealisedlenses/'):
+    if fnmatch.fnmatch(file, 'lenspopulation_jaguar_residual_*.pkl'):
+        num_jag = int(re.findall('\d+', file)[0])
 
-# t0=time.clock()
 t0 = time.perf_counter()
 
-#for sourcepop in ["lsst","cosmos"]:
-for sourcepop in ["lsst"]:
+for sourcepop in ["jaguar"]:
   chunk=0
   Si=0
   SSPL={}
@@ -84,19 +89,17 @@ for sourcepop in ["lsst"]:
       foundcount[survey]=0
 
   if sourcepop=="cosmos":
-      nall=1100000
+      n_l2=1100000
   elif sourcepop=="lsst":
-      nall=12530000
-  nall=int(nall*frac)
+      n_l2=12530000 # 11979021
+  elif sourcepop=="jaguar":
+      n_l2=num_jag # this should be the number appended to the _residual pickle file in idealisedlenses/; it's the total number of real lenses for the whole sky
+  nall=int(n_l2*frac)
 
   for i in range(nall):
-    if i%10000==0:
-        # print "about to load"
+    if i%10000==0: # if the remainder of i/10000 is zero i.e. if i is a multiple of 10000:
         print("about to load")
         L.LoadLensPop(i,sourcepop)
-        # print i,nall
-        # print(i)
-        # print(nall)
 
     if i!=0:
         if i%10000==0 or i==100 or i==300 or i==1000 or i==3000:
@@ -117,10 +120,11 @@ for sourcepop in ["lsst"]:
         del L.lens[i]
         continue
 
-    lenspars["rl"]["VIS"]=(lenspars["rl"]["r_SDSS"]+\
-                           lenspars["rl"]["i_SDSS"]+lenspars["rl"]["z_SDSS"])/3
-    for mi in [lenspars["ml"],lenspars["ms"][1]]:
-        mi["VIS"]=(mi["r_SDSS"]+mi["i_SDSS"]+mi["z_SDSS"])/3
+    # don't have these bands for COSMOS-Web
+    # lenspars["rl"]["VIS"]=(lenspars["rl"]["r_SDSS"]+\
+    #                        lenspars["rl"]["i_SDSS"]+lenspars["rl"]["z_SDSS"])/3
+    # for mi in [lenspars["ml"],lenspars["ms"][1]]:
+    #     mi["VIS"]=(mi["r_SDSS"]+mi["i_SDSS"]+mi["z_SDSS"])/3
 
 
 
@@ -143,7 +147,7 @@ for sourcepop in ["lsst"]:
     lastsurvey="non"
     for survey in surveys:
 
-        S[survey].setLensPars(lenspars["ml"],lenspars["rl"],lenspars["ql"],reset=True)
+        S[survey].setLensPars(lenspars["ml"],lenspars["rl"],lenspars["ql"])#,reset=True)
         for j in range(nsources):
             S[survey].setSourcePars(lenspars["b"][j+1],lenspars["ms"][j+1],\
                                     lenspars["xs"][j+1],lenspars["ys"][j+1],\
