@@ -141,43 +141,57 @@ class LensPopulation_(Population):
         self.lensPopSplineDump()
 
     def Psigzspline(self):
-        # print('I am in Psigzspline')
-        #"""
-        #drawing from a 2d pdf is a pain; should probably make this into its own module
-        self.zlbins,self.dzl=np.linspace(0,self.zlmax,201,retstep=True)
-        sigmas=np.linspace(self.sigfloor,400,401)
-        self.sigbins=sigmas
-        dNdz=self.zlbins*0
-        Csiggivenz=np.zeros((sigmas.size,self.zlbins.size))
-        CDFbins=np.linspace(0,1,1001)
-        siggivenCz=np.zeros((CDFbins.size,self.zlbins.size))
-        for i in range(len(self.zlbins)):
-            z=self.zlbins[i]
-            dphidsiggivenz=self.phi(sigmas,z)
-            phisigspline=interpolate.splrep(sigmas,dphidsiggivenz)
-            tot=interpolate.splint(self.sigfloor,500,phisigspline)
-            Csiggivenz[:,i]=np.cumsum(dphidsiggivenz)/np.sum(dphidsiggivenz)
-            Csiggivenzspline=interpolate.splrep(Csiggivenz[:,i],sigmas)
-            siggivenCz[:,i]=interpolate.splev(CDFbins,Csiggivenzspline)
+        # drawing from a 2d pdf is a pain; should probably make this into its own module
+
+        self.zlbins, self.dzl = np.linspace(0, self.zlmax, 201, retstep=True) # get an array of redshifts and return the step size too (dzl)
+
+        sigmas = np.linspace(self.sigfloor, 400, 401) # get an array of velocity dispersions
+
+        # self.sigbins = sigmas # never used?
+
+        # initialise empty arrays for filling below
+        Csiggivenz = np.zeros((sigmas.size, self.zlbins.size))
+
+        CDFbins = np.linspace(0, 1, 1001)
+
+        siggivenCz = np.zeros((CDFbins.size,self.zlbins.size))
+
+        dNdz = self.zlbins*0
+
+        for i in range(len(self.zlbins)): # for each of the redshift bins
+
+            z = self.zlbins[i] # get the current redshift
+
+            dphidsiggivenz = self.phi(sigmas, z) # compute d phi/ d sigma for this redshift
+
+            phisigspline = interpolate.splrep(sigmas, dphidsiggivenz) # interpolate d phi/ d sigma as a function of sigma
+
+            tot = interpolate.splint(self.sigfloor, 500, phisigspline) # integrate the d phi/ d sigma spline between the limits sigfloor and 500
+
+            Csiggivenz[:,i] = np.cumsum(dphidsiggivenz)/np.sum(dphidsiggivenz) # write the cumulative sum of d phi/ d sigma divided by its sum (why this quantity idk) to the empty array
+
+            Csiggivenzspline = interpolate.splrep(Csiggivenz[:,i], sigmas) # interpolate the cumulative sum as a function of sigma
+
+            siggivenCz[:,i] = interpolate.splev(CDFbins, Csiggivenzspline) # splev evaluates the spline Csiggivenzspline at the points given by CDFbins, which are then written to the empty array
+
             if z!=0:
-                dNdz[i]=tot*(self.Volume(z)-self.Volume(z-self.dzl))/self.dzl
+                dNdz[i] = tot*(self.Volume(z) - self.Volume(z-self.dzl))/self.dzl # multiply the total number (from the integral of d phi/ d sigma) by the comoving volume at the given redshift
 
-        Nofzcdf=np.cumsum(dNdz)/np.sum(dNdz)
-        #import pylab as plt
-        #plt.plot(self.zlbins,Nofzcdf)
-        #plt.show()
-        #exit()
-        self.cdfdNdzasspline=interpolate.splrep(Nofzcdf,self.zlbins)
+        Nofzcdf = np.cumsum(dNdz)/np.sum(dNdz) # get the cumulative distribution function for N(z)
 
-        self.dNdzspline=interpolate.splrep(self.zlbins,dNdz)
-        N=interpolate.splint(0,self.zlmax,self.dNdzspline)
+        self.cdfdNdzasspline = interpolate.splrep(Nofzcdf, self.zlbins) # interpolate the N(z) CDF
 
-        self.cdfdsigdzasspline=interpolate.RectBivariateSpline(\
-            CDFbins,self.zlbins,siggivenCz)
+        self.dNdzspline = interpolate.splrep(self.zlbins, dNdz) # interpolate dN/dz
 
-        dphidsiggivenz0=self.phi(sigmas,sigmas*0)
-        cdfdNdsigz0=dphidsiggivenz0.cumsum()/dphidsiggivenz0.sum()
-        self.cdfdNdsigz0asspline=interpolate.splrep(cdfdNdsigz0,sigmas)
+        # N = interpolate.splint(0, self.zlmax, self.dNdzspline) # integrate the dN/dz spine to get N, the total number of deflectors
+
+        self.cdfdsigdzasspline = interpolate.RectBivariateSpline(CDFbins, self.zlbins, siggivenCz)
+
+        dphidsiggivenz0 = self.phi(sigmas, sigmas*0)
+
+        cdfdNdsigz0 = dphidsiggivenz0.cumsum()/dphidsiggivenz0.sum()
+
+        self.cdfdNdsigz0asspline = interpolate.splrep(cdfdNdsigz0, sigmas) # here
 
     def Colourspline(self):
         # print('I am in Colourspline')
@@ -238,11 +252,12 @@ class LensPopulation_(Population):
     def colour(self,z,band):
         return interpolate.splev(z,self.colourspline[band])
 
-    def Ndeflectors(self,z,zmin=0,fsky=1):
-        if zmin>z:
-            z,zmin=zmin,z
-        N=interpolate.splint(zmin, z, self.dNdzspline)
-        N*=fsky
+    def Ndeflectors(self, z, zmin=0, fsky=1):
+        print('I am in Ndeflectors')
+        if zmin > z: # make sure the redshifts are passed in the right order
+            z, zmin = zmin, z
+        N = interpolate.splint(zmin, z, self.dNdzspline)
+        N *= fsky
         return N
 
     def phi(self,sigma,z):
