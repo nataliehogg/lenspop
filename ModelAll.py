@@ -11,8 +11,8 @@ import os
 import fnmatch
 import re
 
-sigfloor = 200 # something to do with the splines in MakeLensPop
-cosmo = [0.3, 0.7, 0.7] # omega_m, omega_L, h; here at least is something that can definitely be improved
+sigfloor = 100 # must match that used in MakeLensPop!
+cosmo = [0.3, 0.7, 0.7] # omega_m, omega_L, h; should match sourcepop cosmology?
 
 L = LensSample(sigfloor=sigfloor, cosmo=cosmo)
 
@@ -41,8 +41,8 @@ if experiment=='COSMOS-Web':
     weighting = area/(sky_area*frac)
     print('weighting to be applied (COSMOS-Web): {}'.format(weighting))
 
-firstod  = 1 # ?
-nsources = 1 # ?
+firstod  = 1 # source overdensity
+nsources = 1 # initialise nsources
 
 
 surveys=[]
@@ -91,7 +91,7 @@ for sourcepop in ["jaguar"]:
   if sourcepop=="cosmos":
       n_l2=1100000
   elif sourcepop=="lsst":
-      n_l2=12530000 # 11979021
+      n_l2=12530000
   elif sourcepop=="jaguar":
       n_l2=num_jag # this should be the number appended to the _residual pickle file in idealisedlenses/; it's the total number of real lenses for the whole sky
   nall=int(n_l2*frac)
@@ -125,11 +125,6 @@ for sourcepop in ["jaguar"]:
     #                        lenspars["rl"]["i_SDSS"]+lenspars["rl"]["z_SDSS"])/3
     # for mi in [lenspars["ml"],lenspars["ms"][1]]:
     #     mi["VIS"]=(mi["r_SDSS"]+mi["i_SDSS"]+mi["z_SDSS"])/3
-
-
-
-
-    #if lenspars["zl"]>1 or lenspars["zl"]<0.2 or lenspars["ml"]["i_SDSS"]<17 or lenspars["ml"]["i_SDSS"]>22:continue# this is a CFHT compare quick n dirty test
 
     lenspars["mag"]={}
     lenspars["msrc"]={}

@@ -122,8 +122,8 @@ class Survey():
             self.pixelsize=0.031 # NIRCam short wavelength pixel scale (long wavelength is 0.063)
             self.side=131 # this is NSIDE from the CWeb ring FITS header, assuming all images will be the same size
             self.bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
-            self.zeropoints=[27.59, 27.89, 27.98, 28.16] 
-            self.zeroexposuretime=1. # no idea what this is, using Euclid
+            self.zeropoints=[27.59, 27.89, 27.98, 28.16]
+            self.zeroexposuretime=1. # exposure time for the zeropoint; can't find this info right now
             self.skybrightnesses=[29.52, 29.52, 29.52, 29.52] # should be calculated from ETC; using values in lenstronomy
             self.exposuretimes=[257, 257, 257, 257] # 257 secs per exposure
             self.gains=[2.05, 2.05, 1.82, 1.82] # 2.05 +/- 0.4 for the short wavelength filters; 1.82 +/- 0.4 for the long wavelength filters

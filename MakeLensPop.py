@@ -10,9 +10,8 @@ import indexTricks as iT
 from PopulationFunctions import *
 
 class LensPopulation(LensPopulation_):
-    def  __init__(self, zlmax=3, sigfloor=250, D=None, reset=True,
-                  bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS',
-                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
+    def  __init__(self, zlmax=3, sigfloor=100, D=None, reset=True,
+                  bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
                   ): #sadface
         self.sigfloor=sigfloor
         self.zlmax=zlmax
@@ -21,7 +20,7 @@ class LensPopulation(LensPopulation_):
         self.beginRedshiftDependentRelation(D)
         self.beginLensPopulation(D)
 
-    def phi(self,sigma,z):
+    def phi(self, sigma, z):
     #you can change this, but remember to reset the splines if you do.
         sigma[sigma==0]+=1e-6
         phi_star=(8*10**-3)*self.D.h**3
@@ -34,7 +33,7 @@ class LensPopulation(LensPopulation_):
             math.gamma(alpha*1./beta)/\
             (1.*sigma)
 
-        #phi*=(1+z)**(-2.5)
+        # phi*=(1+z)**(-2.5)
         self.nozdependence=True
 
         return phi
@@ -42,8 +41,7 @@ class LensPopulation(LensPopulation_):
 
 class SourcePopulation(SourcePopulation_):
     def  __init__(self, D=None, reset=False,
-                  bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
-                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
+                  bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   population="jaguar"
                   ):
         self.bands=bands
@@ -55,24 +53,14 @@ class SourcePopulation(SourcePopulation_):
         elif population=="jaguar":
             self.loadjaguar()
 
-        # what I don't get is that this is making all the extant lenses
-        # and then instead of just discarding some it regenerates new lenses??
-
-
-        #NB all the functions are in the inherited from class.
-
-#,'VIS'
-
-#========================================
 class LensSample():
     """
     Wrapper for all the other objects so you can just call it, and then run
     Generate_Lens_Pop to get a fairly drawn lens population
     """
-    def  __init__(self, D=None, #reset=False,
+    def  __init__(self, D=None,
                   zlmax=3, sigfloor=100,
-                  bands=[#'F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT',
-                  'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
+                  bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   cosmo=[0.3,0.7,0.7], sourcepop="jaguar"
                   ):
         self.sourcepopulation=sourcepop
@@ -101,31 +89,28 @@ class LensSample():
 
         self.lens={}
         self.reallens={}
-        M=N*1
-        l=-1
-        l2=-1
-        while M>0:
-            # timeleft="who knows"
-            timeleft= 500 # fake number to initialise
+        M=N*1 # initialise M, the number of deflectors computed in PopulationFunctions -> Ndeflectors -> dn/dz, sigma, phi, all that business
+        l=-1 # initialise number of lenses (?)
+        l2=-1 # initialise number of lenses meeting b^2 > x^ + y^2 criterion
+
+        while M>0: # while the number of deflectors is non-zero... (i.e. this looks at every deflector to see if it's lensing a source?)
+            timeleft= 1 # fake number to initialise
             if M!=N:
-                # tnow=time.clock()
-                tnow=time.perf_counter()
-                ti=(tnow-t0)/float(N-M)
-                timeleft=ti*M/60.
+                tnow = time.perf_counter()
+                ti = (tnow-t0)/float(N-M)
+                timeleft = ti*M/60.
 
             print('{:.1f} minutes ({:.1f} hours) left'.format(timeleft, timeleft/60))
 
-            if M>100000:
-                n=100000
-            else:
-                n=M*1
-            M-=n
+            if M>100000: # if the number of deflectors is over 100,000
+                n=100000 # start drawing the lens and source pops at 100,000
+            else: # otherwise if M < 100,000
+                n=M*1 # do the whole lot in one go
+            M-=n # then subtract the number computed from the number to be computed
 
-            zl, sigl, ml, rl, ql = self.L.drawLensPopulation(n)
+            zl, sigl, ml, rl, ql = self.L.drawLensPopulation(n) # draw n lenses (from the total possible number of deflectors, which is M)
 
-            # zs,ms,xs,ys,qs,ps,rs,mstar,mhalo=self.S.drawSourcePopulation(n*nsources,sourceplaneoverdensity=firstod,returnmasses=True)
-
-            zs, ms, xs, ys, qs, ps, rs = self.S.drawSourcePopulation(n*nsources, sourceplaneoverdensity=firstod, returnmasses=False)
+            zs, ms, xs, ys, qs, ps, rs = self.S.drawSourcePopulation(n*nsources, sourceplaneoverdensity=firstod, returnmasses=False) # draw n sources (from the total possible number of sources, which is M)
 
             zl1=zl*1
             sigl1=sigl*1
@@ -134,11 +119,10 @@ class LensSample():
                 sigl=numpy.concatenate((sigl,sigl1))
 
             b=self.E.sie_rein(sigl,zl,zs)
-            for i in range(n):
+            for i in range(n): # for each of the n lenses and sources, check to see if the nth lens lenses the nth source
                 l +=1
                 self.lens[l]={}
                 if b[i]**2>(xs[i]**2+ys[i]**2):
-                    # NH: I think all these = need to be appends don't they?
                     self.lens[l]["lens?"]=True
                 else:
                     self.lens[l]["lens?"]=False
@@ -238,13 +222,17 @@ class LensSample():
         return True
 
 if __name__ == "__main__":
-    # print('I am in main')
+
     import distances
-    fsky=1
-    D=distances.Distance()
-    Lpop=LensPopulation(reset=True, sigfloor=100, zlmax=3, D=D)
-    Ndeflectors=Lpop.Ndeflectors(z=3, zmin=0, fsky=1)
-    # L=LensSample(reset=False,sigfloor=100,cosmo=[0.3,0.7,0.7],sourcepop="lsst")
-    L=LensSample(#reset=False,
-                 sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")
+
+    D = distances.Distance()
+
+    fsky = 1
+
+    Lpop = LensPopulation(reset=True, sigfloor=100, zlmax=3, D=D)
+
+    Ndeflectors = Lpop.Ndeflectors(z=3, zmin=0, fsky=fsky)
+
+    L = LensSample(sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")
+
     L.Generate_Lens_Pop(int(Ndeflectors), firstod=1, nsources=1, prunenonlenses=True)

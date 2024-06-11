@@ -10,7 +10,6 @@ from astropy.io import fits
 class RedshiftDependentRelation():
     def __init__(self, D=None, #reset=False,
                  cosmo=[0.3,0.7,0.7]):
-        # print('I am in RedshiftDependentRelation')
         self.beginRedshiftDependentRelation(D, cosmo=cosmo)
 
     def beginRedshiftDependentRelation(self, D, zmax=10, cosmo=[0.3,0.7,0.7]):
@@ -38,9 +37,7 @@ class RedshiftDependentRelation():
         elif units=="Mpc":
             corfrac=1
         else:
-            # print "don't know those units yet"
             print("don't know those units yet")
-        # if z2==None:
         if z2 is None:
             return self.splev(z1,self.Da_spline)*corfrac
         else:
@@ -71,13 +68,14 @@ class RedshiftDependentRelation():
 
 class EinsteinRadiusTools(RedshiftDependentRelation):
     def  __init__(self,D=None):
-        # print('I am in EinsteinRadiusTools')
         self.beginRedshiftDependentRelation(D)
         self.c=299792
 
     def sie_sig(self,rein,zl,zs):
         self.c=299792
         ds=self.Da(zs)
+        print('ds')
+        print(ds)
         dls=self.Da(zl,zs)
         sig=(rein*(ds*self.c**2)/(206265*4*math.pi*dls))**0.5
         return sig
@@ -93,16 +91,13 @@ class EinsteinRadiusTools(RedshiftDependentRelation):
 #====================================================================================
 class Population(RedshiftDependentRelation):
     def  __init__(self):
-        # print('I am in Population')
         pass
 
     def draw_apparent_magnitude(self,M,z,band=None,colours=None):
         if band!=None:
             colours=self.colour(z,band)
-        # if colours==None:
         if colours is None:
             colours=0
-            # print "warning no k-correction"
             print("warning no k-correction")
         Dmods=self.Dmod(z)
         ml = M - colours + Dmods
@@ -121,7 +116,6 @@ class LensPopulation_(Population):
                   'JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   cosmo=[0.3,0.7,0.7]
                   ): #sadface
-        # print('I am in LensPopulation')
         self.sigfloor=sigfloor
         self.zlmax=zlmax
         self.bands=bands
@@ -130,12 +124,10 @@ class LensPopulation_(Population):
         self.beginLensPopulation(D)
 
     def beginLensPopulation(self,D):
-        # print('I am in beginLensPopulation')
         self.lenspopfunctions()
 
 
     def lenspopfunctions(self):
-        # print('I am in lenspopfunctions')
         self.Psigzspline()
         self.Colourspline()
         self.lensPopSplineDump()
@@ -147,7 +139,7 @@ class LensPopulation_(Population):
 
         sigmas = np.linspace(self.sigfloor, 400, 401) # get an array of velocity dispersions
 
-        # self.sigbins = sigmas # never used?
+        # self.sigbins = sigmas # NH: never used?
 
         # initialise empty arrays for filling below
         Csiggivenz = np.zeros((sigmas.size, self.zlbins.size))
@@ -194,7 +186,6 @@ class LensPopulation_(Population):
         self.cdfdNdsigz0asspline = interpolate.splrep(cdfdNdsigz0, sigmas) # here
 
     def Colourspline(self):
-        # print('I am in Colourspline')
         from stellarpop import tools
         sed = tools.getSED('BC_Z=1.0_age=10.00gyr')
         #different SEDs don't change things much
@@ -221,16 +212,16 @@ class LensPopulation_(Population):
         try: len(z)
         except TypeError:z=[z]
         if self.nozdependence:
-            sigs =interpolate.splev(np.random.random(len(z)),self.cdfdNdsigz0asspline)
+            sigs = interpolate.splev(np.random.random(len(z)),self.cdfdNdsigz0asspline)
             return sigs
         else:
             print("Warning: drawing from 2dpdf is low accuracy")
             return self.cdfdsigdzasspline.ev(np.random.random(len(z)),z)
 
-    def draw_zsig(self,N):
+    def draw_zsig(self, N):
         z=self.draw_z(N)
         sig=self.draw_sigma(z)
-        return z,sig
+        return z, sig
 
     def EarlyTypeRelations(self,sigma,z=None,scatter=True,band=None):#z dependence not encoded currently
         #Hyde and Bernardi, M = r band absolute magnitude.
@@ -250,17 +241,16 @@ class LensPopulation_(Population):
         return Mr,r_phys
 
     def colour(self,z,band):
-        return interpolate.splev(z,self.colourspline[band])
+        return interpolate.splev(z, self.colourspline[band])
 
     def Ndeflectors(self, z, zmin=0, fsky=1):
-        print('I am in Ndeflectors')
         if zmin > z: # make sure the redshifts are passed in the right order
             z, zmin = zmin, z
         N = interpolate.splint(zmin, z, self.dNdzspline)
         N *= fsky
         return N
 
-    def phi(self,sigma,z):
+    def phi(self, sigma, z):
         # equation 3 of Tom's paper
         sigma[sigma==0]+=1e-6
         phi_star=(8*10**-3)*self.D.h**3
@@ -308,25 +298,18 @@ class LensPopulation_(Population):
 class SourcePopulation_(Population):
     def  __init__(self,
                   D=None,
-                  #reset=False,
-                  bands= ['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],#['F814W_ACS','g_SDSS','r_SDSS','i_SDSS','z_SDSS','Y_UKIRT','VIS'],
+                  bands= ['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
                   cosmo=[0.3,0.7,0.7],
-                  # population='lsst'
                   population='jaguar'
                   ):
-        # print('I am in SourcePopulation')
 
         self.bands = bands
 
         self.beginRedshiftDependentRelation(D)
 
-        # self.loadlsst()
-
         self.loadjaguar()
 
     def loadjaguar(self):
-
-        # print('I am in loadjaguar')
 
         # source population simulated using a sky catalogue made for LSST
         # catalogue was generated by ray-tracing through the Millennium simulation
@@ -337,35 +320,28 @@ class SourcePopulation_(Population):
 
         self.population = 'jaguar'
 
-        # print("using jaguar catalogue")
+        hdul_q = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; quiescent galaxies only
+        hdul_sf = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; star-forming galaxies only
 
-        # data = np.genfromtxt('lsst.1sqdegree_catalog2.txt', delimiter=',') # NH: added the delimiter type so it reads the file correctly
+        data_q = hdul_q[1].data  # assume the first extension is a table
+        data_sf = hdul_sf[1].data
 
-        hdul = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; quiescent galaxies only
-        # hdul = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; star-forming galaxies only
-
-        data = hdul[1].data  # assume the first extension is a table
-
-        self.zc = data['redshift']
+        self.zc = list(data_q['redshift']) + list(data_sf['redshift']) # kind of hacky way to join the two catalogues but whatever
 
         self.m = {}
 
-        self.m["JWST_NIRCam_F115W"]=data['NRC_F115W_fnu']
-        self.m["JWST_NIRCam_F150W"]=data['NRC_F150W_fnu']
-        self.m["JWST_NIRCam_F277W"]=data['NRC_F277W_fnu']
-        self.m["JWST_NIRCam_F444W"]=data['NRC_F444W_fnu']
+        self.m["JWST_NIRCam_F115W"] = list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu'])
+        self.m["JWST_NIRCam_F150W"] = list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu'])
+        self.m["JWST_NIRCam_F277W"] = list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu'])
+        self.m["JWST_NIRCam_F444W"] = list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu'])
 
-        self.mstar=data['mStar']
+        self.mstar = list(data_q['mStar']) + list(data_sf['mStar'])
 
         # self.mhalo=data[:,13] # there are no halo masses in the JADES catalogue
 
-        # self.m["VIS"]=(self.m["r_SDSS"]+self.m["i_SDSS"]+self.m["z_SDSS"])/3 # we don't care about the VIS band
+        self.re_maj = list(data_q['Re_maj']) + list(data_sf['Re_maj'])
 
-        # self.Mv=data['MUV']
-
-        self.re_maj = data['Re_maj']
-
-        self.q=data['axis_ratio']
+        self.q = list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])
 
     def RofMz(self, M, z, scatter=True, band=None):
         #band independent so far
@@ -385,25 +361,22 @@ class SourcePopulation_(Population):
 
         return r_phys
 
-    def draw_flattening_sourcepop(self, N):
-        # print('I am in draw_flattening_sourcepop') # for jaguar I don't think we need this; it's in the mock already (axis ratio)
-        # y=np.ones(N*1.5)*0.3
-        y=np.ones(int(N*1.5))*0.3
-        e=np.random.rayleigh(y)
-        q=1-e
-        q=q[q>0.2]
-        q=q[:N]
-
-        return q
+    # def draw_flattening_sourcepop(self, N):
+    # for jaguar we don't need this; it's in the mock already (axis ratio)
+    #     # print('I am in draw_flattening_sourcepop')
+    #     # y=np.ones(N*1.5)*0.3
+    #     y=np.ones(int(N*1.5))*0.3
+    #     e=np.random.rayleigh(y)
+    #     q=1-e
+    #     q=q[q>0.2]
+    #     q=q[:N]
+    #
+    #     return q
 
     def drawSourcePopulation(self, number, sourceplaneoverdensity=10, returnmasses=False):
-        # print('I am in drawSourcePopulation')
         source_index=np.random.randint(0,len(self.zc),number*3)
-        #source_index=source_index[((self.zc[source_index]<10) & (self.zc[source_index]>0.05))]
         source_index=source_index[:number]
         self.zs=self.zc[source_index]
-        # self.Mvs=self.Mv[source_index] # using quiescent galaxies; don't have MUV
-        # self.r_phys=self.RofMz(self.Mvs, self.zs, scatter=True)
         self.r_phys=self.re_maj[source_index]
 
         self.ms={}
@@ -412,22 +385,21 @@ class SourcePopulation_(Population):
 
         self.rs=self.draw_apparent_size(self.r_phys, self.zs)
 
-        # self.qs=self.draw_flattening_sourcepop(number) # this is already in the jaguar catalogue too
         self.qs=self.q[source_index]
 
         self.ps=np.random.random_sample(number)*180
 
-        #lsst sim has a source density of ~0.06 per square arcsecond
+        # lsst sim has a source density of ~0.06 per square arcsecond
         # fac=(0.06)**-0.5
         # a=fac*(sourceplaneoverdensity)**-.5
 
-        # there are 302,515 galaxies in the 1st realisation of the JADES mock loaded above (len(self.zc))
+        # there are 302,515 SF galaxies and 7464 quiescent galaxies in the 1st realisation of the JADES mock loaded above (len(self.zc))
         # the area of the mock is 11 arcmin^2
         # that is 660 arcseconds^2
-        # the source density is therefore ~0.69 (302515/660^2)
-        # if I try to compute the LSST source density in the same way I get ~0.003 so who knows...
+        # the source density is therefore ~0.71 (309979/660^2)
+        # if I try to compute the LSST source density in the same way I get ~0.03, and it's not clear where the factor 2 went
         # density = len(self.zc)/(660**2.)
-        density=0.69
+        density=0.71
         fac=(density)**-0.5
         a=fac*(sourceplaneoverdensity)**-0.5
 
@@ -441,20 +413,8 @@ class SourcePopulation_(Population):
         # since the Einstein radii are generated physically and in the same way each time
         # larger x and y means fewer lenses in the sample
 
-        # if returnmasses:
-        #     self.mstar_src=self.mstar[source_index]
-        #     self.mhalo_src=self.mhalo[source_index]
-        #     return self.zs,self.ms,self.xs,self.ys,self.qs,self.ps,self.rs,self.mstar_src,self.mhalo_src
-
-        return self.zs,self.ms,self.xs,self.ys,self.qs,self.ps,self.rs
+        return self.zs, self.ms, self.xs, self.ys, self.qs, self.ps, self.rs
 
 if __name__=="__main__":
-    #RedshiftDependentRelation(reset=True)
 
-    #L=LensPopulation_(reset=True,sigfloor=100)
-
-    # S=SourcePopulation_(reset=False,population="cosmos")
-    # S2=SourcePopulation_(reset=False, population="lsst")
-    # S2=SourcePopulation_(reset=False, population="jaguar")
-
-    S2=SourcePopulation_(population="jaguar")
+    S2 = SourcePopulation_(population = "jaguar")
