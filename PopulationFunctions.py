@@ -326,22 +326,22 @@ class SourcePopulation_(Population):
         data_q = hdul_q[1].data  # assume the first extension is a table
         data_sf = hdul_sf[1].data
 
-        self.zc = list(data_q['redshift']) + list(data_sf['redshift']) # kind of hacky way to join the two catalogues but whatever
+        self.zc = np.array(list(data_q['redshift']) + list(data_sf['redshift'])) # kind of hacky way to join the two catalogues but whatever
 
         self.m = {}
 
-        self.m["JWST_NIRCam_F115W"] = list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu'])
-        self.m["JWST_NIRCam_F150W"] = list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu'])
-        self.m["JWST_NIRCam_F277W"] = list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu'])
-        self.m["JWST_NIRCam_F444W"] = list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu'])
+        self.m["JWST_NIRCam_F115W"] = np.array(list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu']))
+        self.m["JWST_NIRCam_F150W"] = np.array(list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu']))
+        self.m["JWST_NIRCam_F277W"] = np.array(list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu']))
+        self.m["JWST_NIRCam_F444W"] = np.array(list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu']))
 
-        self.mstar = list(data_q['mStar']) + list(data_sf['mStar'])
+        self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar']))
 
         # self.mhalo=data[:,13] # there are no halo masses in the JADES catalogue
 
-        self.re_maj = list(data_q['Re_maj']) + list(data_sf['Re_maj'])
+        self.re_maj = np.array(list(data_q['Re_maj']) + list(data_sf['Re_maj']))
 
-        self.q = list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])
+        self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio']))
 
     def RofMz(self, M, z, scatter=True, band=None):
         #band independent so far
@@ -373,10 +373,14 @@ class SourcePopulation_(Population):
     #
     #     return q
 
-    def drawSourcePopulation(self, number, sourceplaneoverdensity=10, returnmasses=False):
-        source_index=np.random.randint(0,len(self.zc),number*3)
+    def drawSourcePopulation(self, number, sourceplaneoverdensity=1, returnmasses=False):
+
+        source_index = np.random.randint(0, len(self.zc), number*3)
+
         source_index=source_index[:number]
+
         self.zs=self.zc[source_index]
+
         self.r_phys=self.re_maj[source_index]
 
         self.ms={}
