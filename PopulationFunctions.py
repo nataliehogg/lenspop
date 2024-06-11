@@ -22,7 +22,7 @@ class RedshiftDependentRelation():
         self.D=D
 
         splinedump = open("redshiftsplines.pkl","rb")
-        self.Da_spline, self.Dmod_spline, self.volume_spline, self.Da_bispline = pickle.load(splinedump)
+        self.Da_spline, self.Dmod_spline, self.volume_spline, self.Da_bispline = pickle.load(splinedump,encoding='iso-8859-1')
 
     def Volume(self,z1,z2=None):
         if z2==None:
@@ -319,6 +319,9 @@ class SourcePopulation_(Population):
         # is this lack of faint sources something we need to consider for COSMOS-Web?
 
         self.population = 'jaguar'
+
+        #hdul_q = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # CC-IN2P3
+        #hdul_sf = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits')
 
         hdul_q = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; quiescent galaxies only
         hdul_sf = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; star-forming galaxies only
