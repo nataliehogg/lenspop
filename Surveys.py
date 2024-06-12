@@ -124,7 +124,7 @@ class Survey():
             self.bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
             self.zeropoints=[27.59, 27.89, 27.98, 28.16]
             self.zeroexposuretime=1. # exposure time for the zeropoint; can't find this info right now
-            self.skybrightnesses=[29.52, 29.52, 29.52, 29.52] # should be calculated from ETC; using values in lenstronomy
+            self.skybrightnesses=[30.96, 29.96, 28.96, 28.15] # should be calculated using ETC; https://github.com/RubyPC/cGAN_Strong_Lensing/blob/main/Files/JWST_Config.py
             self.exposuretimes=[257, 257, 257, 257] # 257 secs per exposure
             self.gains=[2.05, 2.05, 1.82, 1.82] # 2.05 +/- 0.4 for the short wavelength filters; 1.82 +/- 0.4 for the long wavelength filters
             self.seeing=[0.2, 0.2, 0.2, 0.2] # this is in arcsec so we can probably reduce it a bit (best ground-based sites are 0.3-0.6)
