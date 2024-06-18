@@ -5,6 +5,8 @@ import numpy as np
 import math
 import indexTricks as iT
 from astropy.io import fits
+import pandas as pd
+import random
 
 
 class RedshiftDependentRelation():
@@ -323,28 +325,65 @@ class SourcePopulation_(Population):
         #hdul_q = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # CC-IN2P3
         #hdul_sf = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits')
 
+        # Load standard jaguar catalogues
+
         hdul_q = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; quiescent galaxies only
         hdul_sf = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; star-forming galaxies only
 
         data_q = hdul_q[1].data  # assume the first extension is a table
         data_sf = hdul_sf[1].data
 
-        self.zc = np.array(list(data_q['redshift']) + list(data_sf['redshift'])) # kind of hacky way to join the two catalogues but whatever
+        standard_source_number = len(list(data_q['redshift']) + list(data_sf['redshift']))
+
+        # self.zc = np.array(list(data_q['redshift']) + list(data_sf['redshift'])) # kind of hacky way to join the two catalogues but whatever
+        #
+        # self.m = {}
+        #
+        # self.m["JWST_NIRCam_F115W"] = np.array(list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu']))
+        # self.m["JWST_NIRCam_F150W"] = np.array(list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu']))
+        # self.m["JWST_NIRCam_F277W"] = np.array(list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu']))
+        # self.m["JWST_NIRCam_F444W"] = np.array(list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu']))
+        #
+        # self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar']))
+        #
+        # # self.mhalo=data[:,13] # there are no halo masses in the JADES catalogue
+        #
+        # self.re_maj = np.array(list(data_q['Re_maj']) + list(data_sf['Re_maj']))
+        #
+        # self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio']))
+
+        # OR load modified jaguar catalogue from Holloway et al, provided as a csv
+
+        data = pd.read_csv(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/holloway_data/Adapted_JAGUAR_Parent_Catalogue.csv')
+
+        # Holloway catalogue is the full 10 realisations of 11x11 arcmin;
+        # to match with the standard one used above (1 realisation of 11x11arcmin) we randomly select from the Holloway catalogue
+
+        redshifts = list(data['z'])
+
+        self.zc = np.array(random.sample(redshifts, standard_source_number))
+
+        m1 = list(data['NRC_F115W_fnu'])
+        m2 = list(data['NRC_F150W_fnu'])
+        m3 = list(data['NRC_F277W_fnu'])
+        m4 = list(data['NRC_F444W_fnu'])
 
         self.m = {}
+        self.m["JWST_NIRCam_F115W"] = np.array(random.sample(m1, standard_source_number))
+        self.m["JWST_NIRCam_F150W"] = np.array(random.sample(m2, standard_source_number))
+        self.m["JWST_NIRCam_F277W"] = np.array(random.sample(m3, standard_source_number))
+        self.m["JWST_NIRCam_F444W"] = np.array(random.sample(m4, standard_source_number))
 
-        self.m["JWST_NIRCam_F115W"] = np.array(list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu']))
-        self.m["JWST_NIRCam_F150W"] = np.array(list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu']))
-        self.m["JWST_NIRCam_F277W"] = np.array(list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu']))
-        self.m["JWST_NIRCam_F444W"] = np.array(list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu']))
+        mstar = list(data['Log(M_star)'])
 
-        self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar']))
+        self.mstar = np.array(random.sample(mstar, standard_source_number))
 
-        # self.mhalo=data[:,13] # there are no halo masses in the JADES catalogue
+        remaj = list(data['R_eff (kpc)'])
 
-        self.re_maj = np.array(list(data_q['Re_maj']) + list(data_sf['Re_maj']))
+        self.re_maj = np.array(random.sample(remaj, standard_source_number))
 
-        self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio']))
+        # thanks to the above random selection, the previous arrays will match in size to self.q
+        self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])) # the Holloway catalogue did not preserve this info, reading it from the standard catalogue
 
     def RofMz(self, M, z, scatter=True, band=None):
         #band independent so far
