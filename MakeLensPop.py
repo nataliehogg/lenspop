@@ -182,7 +182,7 @@ class LensSample():
                         #     print(l2)
 
                         if (l2+1)%10000==0: # if (l2+1)/10000 has no remainder:
-                            filename = 'idealisedlenses/lenspopulation_{}_{}.pkl'.format(self.sourcepopulation, l2-10000+1) # NH: also got no clue what all these hardcoded numbers are
+                            filename = 'idealisedlenses/lenspopulation_{}_{}.pkl'.format(self.sourcepopulation, l2-10000+1)
                             out_file = open(filename, 'wb')
                             # pickle.dump(self.reallens, out_file, 2) # NH: so the 2 here is the protocol; we ought to increase this, though two is backwards compatible for py3
                             # 5 is fastest, which may be relevant for the amount of data we have
@@ -210,7 +210,9 @@ class LensSample():
         self.lens=self.reallens
 
     def LoadLensPop(self,j=0,sourcepopulation="jaguar"):
-        f=open("idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
+        # path = '/media/nataliehogg/skygate/lenspop_results/old_results/firstjaguar_'
+        path = ''
+        f=open(path+"idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
         self.lens=pickle.load(f)
         f.close()
 

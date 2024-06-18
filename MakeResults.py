@@ -41,11 +41,7 @@ for survey in surveystoread:
 
     filename = "{}_{}_lists.pkl".format(survey, sourcepop)
 
-    print(filename)
-
     lensparsfile = "lenses_{}.txt".format(survey)
-
-    print(lensparsfile)
 
     f = open(lensparsfile,"w")
     # print

@@ -75,6 +75,7 @@ for survey in surveys:
 
 # this saves having to remember and hardcode the number of idealised lenses each time
 for file in os.listdir('/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/idealisedlenses/'):
+# for file in os.listdir('/media/nataliehogg/skygate/lenspop_results/old_results/firstjaguar_idealisedlenses'):
     if fnmatch.fnmatch(file, 'lenspopulation_jaguar_residual_*.pkl'):
         num_jag = int(re.findall('\d+', file)[0])
 
