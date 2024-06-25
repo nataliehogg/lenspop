@@ -127,15 +127,15 @@ class Survey():
             self.skybrightnesses=[30.96, 29.96, 28.96, 28.15] # should be calculated using ETC; https://github.com/RubyPC/cGAN_Strong_Lensing/blob/main/Files/JWST_Config.py
             self.exposuretimes=[257, 257, 257, 257] # 257 secs per exposure
             self.gains=[2.05, 2.05, 1.82, 1.82] # 2.05 +/- 0.4 for the short wavelength filters; 1.82 +/- 0.4 for the long wavelength filters
-            self.seeing=[0.2, 0.2, 0.2, 0.2] # this is in arcsec so we can probably reduce it a bit (best ground-based sites are 0.3-0.6)
+            self.seeing=[0.1, 0.1, 0.1, 0.1] # in arcsec
             self.nexposures = 8 # 8 exposures per visit (as per the COSMOS-Web paper)
             self.degrees_of_survey= 0.54 # deg^2 for NIRCam; the MIRI area is 0.19 deg^2 but we don't care about that for lensing
             self.readnoise=(15.77) # 15.77 +/- 0.94 for short wavelength channel; 13.25 +/- 0.08 for long wavelength -- don't think we can pass an array here
-            twod115 = numpy.array([[0.2, 29.52],[0.2, 29.52]]) # F115W
-            twod150 = numpy.array([[0.2, 29.52],[0.2, 29.52]]) # F150W
-            twod277 = numpy.array([[0.2, 29.52], [0.2, 29.52]]) # F277W
-            twod440 = numpy.array([[0.2, 29.52], [0.2, 29.52]]) # F444W
-            # these are used to make 2d pdfs of seeing/surface(?) brightness
+            twod115 = numpy.array([[0.1, 30.96], [0.1, 30.96]]) # F115W
+            twod150 = numpy.array([[0.1, 29.96], [0.1, 29.96]]) # F150W
+            twod277 = numpy.array([[0.1, 28.96], [0.1, 28.96]]) # F277W
+            twod440 = numpy.array([[0.1, 28.15], [0.1, 28.15]]) # F444W
+            # these are used to make 2d pdfs of seeing/sky brightness
             self.stochasticobservingdata=[twod115, twod150, twod277, twod440]
 
         elif Name=="Euclid":
