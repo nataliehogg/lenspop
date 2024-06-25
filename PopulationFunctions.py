@@ -6,7 +6,6 @@ import math
 import indexTricks as iT
 from astropy.io import fits
 import pandas as pd
-import random
 
 
 class RedshiftDependentRelation():
@@ -14,7 +13,7 @@ class RedshiftDependentRelation():
                  cosmo=[0.3,0.7,0.7]):
         self.beginRedshiftDependentRelation(D, cosmo=cosmo)
 
-    def beginRedshiftDependentRelation(self, D, zmax=10, cosmo=[0.3,0.7,0.7]):
+    def beginRedshiftDependentRelation(self, D, zmax=20, cosmo=[0.3,0.7,0.7]): # NH: increased zmax from 10 to 20
         self.zmax = zmax
         self.zbins, self.dz = np.linspace(0, self.zmax, 401, retstep=True)
         self.z2bins, self.dz2 = np.linspace(0, self.zmax, 201, retstep=True)
@@ -311,6 +310,18 @@ class SourcePopulation_(Population):
 
         self.loadjaguar()
 
+    def flux_to_mag(self, f):
+        '''
+        Converts flux in nJy to AB mag
+        First checks if a value is zero and replaces it with the median
+        So as not to get infs from the log
+        '''
+        median_flux = np.median(f[f > 0])
+        f[f == 0] = median_flux
+        flux_in_Jy = f*1e-9
+        mag = -2.5*np.log10(flux_in_Jy) + 8.9
+        return mag
+
     def loadjaguar(self):
 
         # source population simulated using a sky catalogue made for LSST
@@ -321,6 +332,10 @@ class SourcePopulation_(Population):
         # is this lack of faint sources something we need to consider for COSMOS-Web?
 
         self.population = 'jaguar'
+
+        self.data_type = 'holloway' # or sf_and_q
+
+        print('loading {} data!'.format(self.data_type))
 
         #hdul_q = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # CC-IN2P3
         #hdul_sf = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits')
@@ -333,57 +348,48 @@ class SourcePopulation_(Population):
         data_q = hdul_q[1].data  # assume the first extension is a table
         data_sf = hdul_sf[1].data
 
-        standard_source_number = len(list(data_q['redshift']) + list(data_sf['redshift']))
+        # get the number of sources in a single realisation
+        single_realisation_source_number = len(list(data_q['redshift']) + list(data_sf['redshift']))
 
-        # self.zc = np.array(list(data_q['redshift']) + list(data_sf['redshift'])) # kind of hacky way to join the two catalogues but whatever
-        #
-        # self.m = {}
-        #
-        # self.m["JWST_NIRCam_F115W"] = np.array(list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu']))
-        # self.m["JWST_NIRCam_F150W"] = np.array(list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu']))
-        # self.m["JWST_NIRCam_F277W"] = np.array(list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu']))
-        # self.m["JWST_NIRCam_F444W"] = np.array(list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu']))
-        #
-        # self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar']))
-        #
-        # # self.mhalo=data[:,13] # there are no halo masses in the JADES catalogue
-        #
-        # self.re_maj = np.array(list(data_q['Re_maj']) + list(data_sf['Re_maj']))
-        #
-        # self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio']))
-
-        # OR load modified jaguar catalogue from Holloway et al, provided as a csv
-
-        data = pd.read_csv(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/holloway_data/Adapted_JAGUAR_Parent_Catalogue.csv')
-
-        # Holloway catalogue is the full 10 realisations of 11x11 arcmin;
-        # to match with the standard one used above (1 realisation of 11x11arcmin) we randomly select from the Holloway catalogue
-
-        redshifts = list(data['z'])
-
-        self.zc = np.array(random.sample(redshifts, standard_source_number))
-
-        m1 = list(data['NRC_F115W_fnu'])
-        m2 = list(data['NRC_F150W_fnu'])
-        m3 = list(data['NRC_F277W_fnu'])
-        m4 = list(data['NRC_F444W_fnu'])
-
-        self.m = {}
-        self.m["JWST_NIRCam_F115W"] = np.array(random.sample(m1, standard_source_number))
-        self.m["JWST_NIRCam_F150W"] = np.array(random.sample(m2, standard_source_number))
-        self.m["JWST_NIRCam_F277W"] = np.array(random.sample(m3, standard_source_number))
-        self.m["JWST_NIRCam_F444W"] = np.array(random.sample(m4, standard_source_number))
-
-        mstar = list(data['Log(M_star)'])
-
-        self.mstar = np.array(random.sample(mstar, standard_source_number))
-
-        remaj = list(data['R_eff (kpc)'])
-
-        self.re_maj = np.array(random.sample(remaj, standard_source_number))
-
-        # thanks to the above random selection, the previous arrays will match in size to self.q
-        self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])) # the Holloway catalogue did not preserve this info, reading it from the standard catalogue
+        # choose whether to use the standard catalogue or the Holloway modified one
+        if self.data_type == 'sf_and_q':
+            self.zc = np.array(list(data_q['redshift']) + list(data_sf['redshift'])) # kind of hacky way to join the two catalogues but whatever
+            self.m = {}
+            # these are fluxes in nJy
+            m1 = np.array(list(data_q['NRC_F115W_fnu']) + list(data_sf['NRC_F115W_fnu']))
+            m2 = np.array(list(data_q['NRC_F150W_fnu']) + list(data_sf['NRC_F150W_fnu']))
+            m3 = np.array(list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu']))
+            m4 = np.array(list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu']))
+            # convert the fluxes to AB magnitudes
+            self.m["JWST_NIRCam_F115W"] = self.flux_to_mag(m1)
+            self.m["JWST_NIRCam_F150W"] = self.flux_to_mag(m2)
+            self.m["JWST_NIRCam_F277W"] = self.flux_to_mag(m3)
+            self.m["JWST_NIRCam_F444W"] = self.flux_to_mag(m4)
+            self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar'])) # log10 stellar mass
+            self.r_eff = np.array(list(data_q['Re_circ']) + list(data_sf['Re_circ'])) # this is the effective *circularised* physical radius in kpc
+            self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])) # axis ratio
+        elif self.data_type == 'holloway':
+            # or load modified jaguar catalogue from Holloway et al, provided as a csv
+            data = pd.read_csv(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/holloway_data/Adapted_JAGUAR_Parent_Catalogue.csv')
+            # Holloway catalogue is the full 10 realisations of 11x11 arcmin;
+            # to match with the standard one used above (1 realisation of 11x11arcmin) we select that number from the Holloway catalogue
+            # but the Holloway catalogue is sorted by redshift, so we cannot just take the first n lines as we will only get low z sources
+            # so, we generate n indices at random and pick using those
+            random_source_indices = np.random.randint(0, len(data['z'])-1, size=single_realisation_source_number)
+            self.zc = np.array(data['z'][random_source_indices])
+            self.m = {}
+            # in the Holloway catalogue the fluxes have already been converted to magnitudes
+            self.m["JWST_NIRCam_F115W"] = np.array(data['NRC_F115W_fnu'][random_source_indices])
+            self.m["JWST_NIRCam_F150W"] = np.array(data['NRC_F150W_fnu'][random_source_indices])
+            self.m["JWST_NIRCam_F277W"] = np.array(data['NRC_F277W_fnu'][random_source_indices])
+            self.m["JWST_NIRCam_F444W"] = np.array(data['NRC_F444W_fnu'][random_source_indices])
+            self.mstar = np.array(data['Log(M_star)'][random_source_indices])
+            self.r_eff = np.array(data['R_eff (kpc)'][random_source_indices])
+            # the Holloway catalogue did not preserve this info, reading it from the standard catalogue
+            # thanks to the above random selection, the previous arrays will match in size to self.q
+            self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio']))
+        else:
+            print('I don\'t know that data type.')
 
     def RofMz(self, M, z, scatter=True, band=None):
         #band independent so far
@@ -423,13 +429,13 @@ class SourcePopulation_(Population):
 
         self.zs=self.zc[source_index]
 
-        self.r_phys=self.re_maj[source_index]
+        self.r_phys=self.r_eff[source_index]
 
         self.ms={}
         for band in self.bands:
             self.ms[band]=self.m[band][source_index]
 
-        self.rs=self.draw_apparent_size(self.r_phys, self.zs)
+        self.rs=self.draw_apparent_size(self.r_phys, self.zs) # converts physical size to angular size in arcsec
 
         self.qs=self.q[source_index]
 
@@ -445,7 +451,9 @@ class SourcePopulation_(Population):
         # the source density is therefore ~0.71 (309979/660^2)
         # if I try to compute the LSST source density in the same way I get ~0.03, and it's not clear where the factor 2 went
         # density = len(self.zc)/(660**2.)
-        density=0.71
+
+        density = 0.71
+
         fac=(density)**-0.5
         a=fac*(sourceplaneoverdensity)**-0.5
 
