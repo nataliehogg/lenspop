@@ -73,11 +73,16 @@ for survey in surveys:
     S[survey].bfac=float(2)
     S[survey].rfac=float(2)
 
+data_type = 'holloway'
+
+print('loading {} idealised lenses!'.format(data_type))
+
 # this saves having to remember and hardcode the number of idealised lenses each time
-for file in os.listdir('/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/idealisedlenses/'):
+for file in os.listdir('/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/'+data_type+'_idealisedlenses/'):
 # for file in os.listdir('/media/nataliehogg/skygate/lenspop_results/old_results/firstjaguar_idealisedlenses'):
     if fnmatch.fnmatch(file, 'lenspopulation_jaguar_residual_*.pkl'):
         num_jag = int(re.findall('\d+', file)[0])
+        #num_jag = 235086758 # firstjaguar_
 
 t0 = time.perf_counter()
 
@@ -126,6 +131,8 @@ for sourcepop in ["jaguar"]:
     #                        lenspars["rl"]["i_SDSS"]+lenspars["rl"]["z_SDSS"])/3
     # for mi in [lenspars["ml"],lenspars["ms"][1]]:
     #     mi["VIS"]=(mi["r_SDSS"]+mi["i_SDSS"]+mi["z_SDSS"])/3
+
+    lenspars["rl"]["average"] = (lenspars["rl"]['JWST_NIRCam_F115W']+lenspars["rl"]['JWST_NIRCam_F150W']+lenspars["rl"]['JWST_NIRCam_F277W']+lenspars["rl"]['JWST_NIRCam_F444W'])/4
 
     lenspars["mag"]={}
     lenspars["msrc"]={}

@@ -108,6 +108,7 @@ for survey in surveystoread:
         f2.close()
         I=0
         # print(sspl[1])
+        f.write('# zl zs b ql rl ml115 ml150 ml277 ml444 xs ys qs ps rs ms115 ms150 ms277 ms444\n')
         for i in sspl.keys():
             if i in ilist:
                 continue
@@ -119,23 +120,24 @@ for survey in surveystoread:
                 f.write("%.2f "%sspl[i]["zl"])
                 f.write("%.2f "%sspl[i]["zs"][1])
                 f.write("%.2f "%sspl[i]["b"][1])
-                f.write("%.2f "%sspl[i]["sigl"])
+                # f.write("%.2f "%sspl[i]["sigl"])
                 f.write("%.2f "%sspl[i]["ql"])
-                #f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
+                f.write("%.2f "%sspl[i]["rl"]['average'])
                 for band in bands:
                     f.write("%.2f "%sspl[i]["ml"][band])
-                #f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
+                # f.write("%.2f "%sspl[i]["rl"]["g_SDSS"])
                 f.write("%.2f "%sspl[i]["xs"][1])
                 f.write("%.2f "%sspl[i]["ys"][1])
                 f.write("%.2f "%sspl[i]["qs"][1])
                 f.write("%.2f "%sspl[i]["ps"][1])
                 f.write("%.2f "%sspl[i]["rs"][1])
-                f.write("%.2f "%sspl[i]["mag"][1])
+                # f.write("%.2f "%sspl[i]["mag"][1])
                 for band in bands:
-                    f.write("%.2f "%sspl[i]["seeing"][survey][band])
-                    f.write("%.2f "%sspl[i]["SN"][survey][1][band][0])
-                if survey!="Euclid":
-                    f.write("%.2f "%sspl[i]["rfsn"][survey][1][0])
+                    f.write("%.2f "%sspl[i]["ms"][1][band])
+                    # f.write("%.2f "%sspl[i]["seeing"][survey][band])
+                    # f.write("%.2f "%sspl[i]["SN"][survey][1][band][0])
+                # if survey!="Euclid":
+                    # f.write("%.2f "%sspl[i]["rfsn"][survey][1][0])
                 f.write("\n")
 
 
