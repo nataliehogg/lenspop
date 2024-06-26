@@ -333,7 +333,7 @@ class SourcePopulation_(Population):
 
         self.population = 'jaguar'
 
-        self.data_type = 'holloway' # or sf_and_q
+        self.data_type = 'holloway' # sf_and_q or holloway
 
         print('loading {} data!'.format(self.data_type))
 
