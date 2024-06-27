@@ -333,7 +333,7 @@ class SourcePopulation_(Population):
 
         self.population = 'jaguar'
 
-        self.data_type = 'holloway' # sf_and_q or holloway
+        self.data_type = 'sf_and_q' # sf_and_q or holloway
 
         print('loading {} data!'.format(self.data_type))
 
@@ -439,7 +439,7 @@ class SourcePopulation_(Population):
 
         self.qs=self.q[source_index]
 
-        self.ps=np.random.random_sample(number)*180
+        self.ps=self.p[source_index] #np.random.random_sample(number)*180; indeed the position angle can be taken from the catalogues too
 
         # lsst sim has a source density of ~0.06 per square arcsecond
         # fac=(0.06)**-0.5
