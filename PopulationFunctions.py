@@ -368,6 +368,7 @@ class SourcePopulation_(Population):
             self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar'])) # log10 stellar mass
             self.r_eff = np.array(list(data_q['Re_circ']) + list(data_sf['Re_circ'])) # this is the effective *circularised* physical radius in kpc
             self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])) # axis ratio
+            self.p = np.array(list(data_q['position_angle']) + list(data_sf['position_angle']))
         elif self.data_type == 'holloway':
             # or load modified jaguar catalogue from Holloway et al, provided as a csv
             data = pd.read_csv(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/holloway_data/Adapted_JAGUAR_Parent_Catalogue.csv')
@@ -388,6 +389,7 @@ class SourcePopulation_(Population):
             # the Holloway catalogue did not preserve this info, reading it from the standard catalogue
             # thanks to the above random selection, the previous arrays will match in size to self.q
             self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio']))
+            self.p = np.array(list(data_q['position_angle']) + list(data_sf['position_angle']))
         else:
             print('I don\'t know that data type.')
 
