@@ -119,6 +119,7 @@ class Survey():
             sky brightness from Tab 1: https://jwst-docs.stsci.edu/jwst-near-infrared-camera/nircam-performance/nircam-bright-source-limits
             gain, read noise: Table 1 of https://jwst-docs.stsci.edu/jwst-near-infrared-camera/nircam-instrumentation/nircam-detector-overview/nircam-detector-performance
             '''
+            # seeing = 0.07 # median seeing for the four bands; actual seeings are drawn randomly from 2dpdfs defined below (currently unused in favour of PSF FWHMs belows)
             self.pixelsize=0.031 # NIRCam short wavelength pixel scale (long wavelength is 0.063)
             self.side=131 # this is NSIDE from the CWeb ring FITS header, assuming all images will be the same size
             self.bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
@@ -127,14 +128,14 @@ class Survey():
             self.skybrightnesses=[30.96, 29.96, 28.96, 28.15] # should be calculated using ETC; https://github.com/RubyPC/cGAN_Strong_Lensing/blob/main/Files/JWST_Config.py
             self.exposuretimes=[257, 257, 257, 257] # 257 secs per exposure
             self.gains=[2.05, 2.05, 1.82, 1.82] # 2.05 +/- 0.4 for the short wavelength filters; 1.82 +/- 0.4 for the long wavelength filters
-            self.seeing=[0.07, 0.07, 0.07, 0.07] # in arcsec; here I used the resolution of NIRCam
+            self.seeing=[0.04, 0.05, 0.092, 0.145] # in arcsec; numbers from Tab 2 Holloway et al 2023
             self.nexposures = 8 # 8 exposures per visit (as per the COSMOS-Web paper)
             self.degrees_of_survey= 0.54 # deg^2 for NIRCam; the MIRI area is 0.19 deg^2 but we don't care about that for lensing
             self.readnoise=(15.77) # 15.77 +/- 0.94 for short wavelength channel; 13.25 +/- 0.08 for long wavelength -- don't think we can pass an array here
-            twod115 = numpy.array([[0.07, 30.96], [0.07, 30.96]]) # F115W
-            twod150 = numpy.array([[0.07, 29.96], [0.07, 29.96]]) # F150W
-            twod277 = numpy.array([[0.07, 28.96], [0.07, 28.96]]) # F277W
-            twod440 = numpy.array([[0.07, 28.15], [0.07, 28.15]]) # F444W
+            twod115 = numpy.array([[0.04, 30.96], [0.04, 30.96]]) # F115W
+            twod150 = numpy.array([[0.05, 29.96], [0.05, 29.96]]) # F150W
+            twod277 = numpy.array([[0.092, 28.96], [0.092, 28.96]]) # F277W
+            twod440 = numpy.array([[0.145, 28.15], [0.145, 28.15]]) # F444W
             # these are used to make 2d pdfs of seeing/sky brightness
             self.stochasticobservingdata=[twod115, twod150, twod277, twod440]
 
