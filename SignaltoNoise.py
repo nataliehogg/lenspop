@@ -108,7 +108,9 @@ class S2N():
         return self.mag,self.msrc,self.SN,self.bestband,self.passfail
 
 #===========================================================================
-    def RingFinderSN(self,bands=["g_SDSS","i_SDSS"],repair=True,mode="crossconvolve",SNcutA=15,magcut=3,SNcutB=[10,8],runringfinder=False,mustbeseen=False):
+    # cweb_bands = ['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W']
+
+    def RingFinderSN(self, bands=["JWST_NIRCam_F115W","JWST_NIRCam_F444W"], repair=True,mode="crossconvolve",SNcutA=15,magcut=3,SNcutB=[10,8],runringfinder=False,mustbeseen=False):
         self.rfpf={}
         for src in self.sourcenumbers:
             self.SNRF[src]=[0]
@@ -162,8 +164,8 @@ class S2N():
         self.S=(sB**2+(alpha*sR)**2)**.5
         self.fakeResidual[0]["RF"]=self.D
         for src in self.sourcenumbers:
-            self.SNRF[src]=self.SNfunc(self.convolvedsrc[src]["g_SDSS"]-alpha*self.convolvedsrc[src]["i_SDSS"],self.S)
-            d=self.convolvedsrc[src]["g_SDSS"]-alpha*self.convolvedsrc[src]["i_SDSS"]
+            self.SNRF[src]=self.SNfunc(self.convolvedsrc[src]["JWST_NIRCam_F115W"]-alpha*self.convolvedsrc[src]["JWST_NIRCam_F444W"],self.S)
+            d=self.convolvedsrc[src]["JWST_NIRCam_F115W"]-alpha*self.convolvedsrc[src]["JWST_NIRCam_F444W"]
             d+=(numpy.random.randn(self.side,self.side)*(self.S))
             self.fakeResidual[src]["RF"]=d
             if self.mag[src]*self.rs[src]>(seeing/self.pixelsize):
@@ -190,8 +192,8 @@ class S2N():
             if runringfinder:
                 import RingFinder
                 RF=RingFinder.RingFinder(B,R,sB,sR,self.pixelsize,
-                                         self.zeromagcounts["g_SDSS"],
-                                         self.zeromagcounts["i_SDSS"])
+                                         self.zeromagcounts["JWST_NIRCam_F115W"],
+                                         self.zeromagcounts["JWST_NIRCam_F444W"])
                 RFo=RF.ringfind()
                 self.D=RF.D*1
                 return RFo,self.rfpf,self.SNRF
