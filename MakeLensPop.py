@@ -212,7 +212,7 @@ class LensSample():
     def LoadLensPop(self,j=0,sourcepopulation="jaguar"):
         # path = '/media/nataliehogg/skygate/lenspop_results/old_results/firstjaguar_'
         path = ''
-        data_type = 'holloway'
+        data_type = 'sf_and_q'
         print('loading {} lens population!'.format(data_type))
         f=open(path+data_type+"_idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
         self.lens=pickle.load(f)
