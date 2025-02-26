@@ -23,6 +23,8 @@ a          = 20 # SNR threshold
 b          = 3 # Magnification threshold
 c          = 1000 # second SNR cut
 d          = 1000 # third SNR cut
+bfac = 2 # default 2
+rfac = 2 # default 2
 
 # user defined settings overwrite above defaults
 if len(sys.argv)>1:
@@ -65,15 +67,14 @@ if experiment=="LSST":
 if experiment=="COSMOS-Web":
     surveys+=["COSMOS-Web"]
 
-
 S={}
 n={}
 for survey in surveys:
     S[survey]=FastLensSim(survey,fractionofseeing=1)
-    S[survey].bfac=float(2)
-    S[survey].rfac=float(2)
+    S[survey].bfac=float(bfac)
+    S[survey].rfac=float(rfac)
 
-data_type = 'holloway'
+data_type = 'sf_and_q'
 
 print('loading {} idealised lenses!'.format(data_type))
 
