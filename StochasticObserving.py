@@ -5,9 +5,9 @@ class SO():
         pass
 
     def drawPSFandSB(self,band):
-        dat=self.stochasticobservingdata[band]
+        dat=self.stochasticobservingdata[band] # this reads the seeing and sky brightness ultimately from Surveys.py
         k=numpy.random.randint(len(dat[:,0]))
-        return dat[k,0],dat[k,1]
+        return dat[k,0],dat[k,1] # this is giving you the seeing aka PSF and sky brightness for a given band
 
     def CalculateETSB(self,sbs,band):
         et=self.exposuretimes[band]*(len(sbs)*(1./self.nexposures))
@@ -81,8 +81,8 @@ class SO():
                 psfs2[band]=numpy.zeros(self.nexposures)
                 sbs2[band]=numpy.zeros(self.nexposures)
                 for i in range(self.nexposures):
-                    a,b=self.drawPSFandSB(band)
-                    psfs[band][i]=a
+                    a,b=self.drawPSFandSB(band) # gets seeing and sky brightness
+                    psfs[band][i]=a # seeing aka PSFs per band
                     sbs[band][i]=b
                     psfs2[band][i]=a*1
                     sbs2[band][i]=b*1
