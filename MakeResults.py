@@ -108,7 +108,7 @@ for survey in surveystoread:
         f2.close()
         I=0
         # print(sspl[1])
-        f.write('# zl zs b ql rl ml115 ml150 ml277 ml444 xs ys qs ps rs ms115 ms150 ms277 ms444\n')
+        f.write('# zl zs b sigmav ql rl ml115 ml150 ml277 ml444 xs ys qs ps rs ms115 SNR115 ms150 SNR150 ms277 SNR277 ms444 SNR444\n')
         for i in sspl.keys():
             if i in ilist:
                 continue
@@ -120,7 +120,7 @@ for survey in surveystoread:
                 f.write("%.2f "%sspl[i]["zl"])
                 f.write("%.2f "%sspl[i]["zs"][1])
                 f.write("%.2f "%sspl[i]["b"][1])
-                # f.write("%.2f "%sspl[i]["sigl"])
+                f.write("%.2f "%sspl[i]["sigl"])
                 f.write("%.2f "%sspl[i]["ql"])
                 f.write("%.2f "%sspl[i]["rl"]['average'])
                 for band in bands:
@@ -135,7 +135,7 @@ for survey in surveystoread:
                 for band in bands:
                     f.write("%.2f "%sspl[i]["ms"][1][band])
                     # f.write("%.2f "%sspl[i]["seeing"][survey][band])
-                    # f.write("%.2f "%sspl[i]["SN"][survey][1][band][0])
+                    f.write("%.2f "%sspl[i]["SN"][survey][1][band][0])
                 # if survey!="Euclid":
                     # f.write("%.2f "%sspl[i]["rfsn"][survey][1][0])
                 f.write("\n")
@@ -180,11 +180,13 @@ for survey in surveystoread:
                             if sspl[i]["ml"]["i_SDSS"]>22:continue
 
                         bl["rfpf"].append(sspl[i]["b"][1])
+                        # print(sspl[i]["b"][1])
                         weights["rfpf"].append(1./fract)
                         zs["rfpf"].append(sspl[i]["zs"][1])
                         rs["rfpf"].append(sspl[i]["rs"][1])
                         zl["rfpf"].append(sspl[i]["zl"])
                         sigl["rfpf"].append(sspl[i]["sigl"])
+                        # print(sspl[i]["sigl"])
                         ql["rfpf"].append(sspl[i]["ql"])
                         mag["rfpf"].append(sspl[i]["mag"][1])
                         #ms["rfpf"].append(sspl[i]["ms"][1]["g_SDSS"])
@@ -207,6 +209,8 @@ for survey in surveystoread:
     nlenses_gi = numpy.sum(numpy.array(weights["rfpf"]).ravel())
 
     print('{} will find {} lenses assuming Poisson limited galaxy subtraction in all bands.'.format(survey, nlenses))
+
+    print('{} will find {} lenses assuming Poisson limited galaxy subtraction in the F115W-F444W difference images.'.format(survey, nlenses_gi))
 
     f=open(filename,"wb")
     pickle.dump([weights, bl, zs, rs, ms, zl, sigl, ql, mag], f, 2)
