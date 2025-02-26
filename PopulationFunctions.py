@@ -310,7 +310,7 @@ class SourcePopulation_(Population):
 
         self.loadjaguar()
 
-    def flux_to_mag(self, f):
+    def flux_to_mag(self, f, waveband):
         '''
         Converts flux in nJy to AB mag
         First checks if a value is zero and replaces it with the median
@@ -318,9 +318,14 @@ class SourcePopulation_(Population):
         '''
         median_flux = np.median(f[f > 0])
         f[f == 0] = median_flux
-        flux_in_Jy = f*1e-9
-        mag = -2.5*np.log10(flux_in_Jy) + 8.9
-        return mag
+        pixel_sr_dict = {"F115W": 2.12313551253570e-14,
+                         "F150W": 2.12313551253570e-14,
+                         "F277W": 8.46363636363636e-14,
+                         "F444W": 8.46363636363636e-14}
+        pixar_sr = pixel_sr_dict[waveband]
+        zero_point = -6.10 - 2.5*np.log10(pixar_sr)
+        magnitude_ab_pix = zero_point - 2.5*np.log10(f)
+        return magnitude_ab_pix
 
     def loadjaguar(self):
 
@@ -361,10 +366,10 @@ class SourcePopulation_(Population):
             m3 = np.array(list(data_q['NRC_F277W_fnu']) + list(data_sf['NRC_F277W_fnu']))
             m4 = np.array(list(data_q['NRC_F444W_fnu']) + list(data_sf['NRC_F444W_fnu']))
             # convert the fluxes to AB magnitudes
-            self.m["JWST_NIRCam_F115W"] = self.flux_to_mag(m1)
-            self.m["JWST_NIRCam_F150W"] = self.flux_to_mag(m2)
-            self.m["JWST_NIRCam_F277W"] = self.flux_to_mag(m3)
-            self.m["JWST_NIRCam_F444W"] = self.flux_to_mag(m4)
+            self.m["JWST_NIRCam_F115W"] = self.flux_to_mag(m1, 'F115W')
+            self.m["JWST_NIRCam_F150W"] = self.flux_to_mag(m2, 'F150W')
+            self.m["JWST_NIRCam_F277W"] = self.flux_to_mag(m3, 'F277W')
+            self.m["JWST_NIRCam_F444W"] = self.flux_to_mag(m4, 'F444W')
             self.mstar = np.array(list(data_q['mStar']) + list(data_sf['mStar'])) # log10 stellar mass
             self.r_eff = np.array(list(data_q['Re_circ']) + list(data_sf['Re_circ'])) # this is the effective *circularised* physical radius in kpc
             self.q = np.array(list(data_q['axis_ratio']) + list(data_sf['axis_ratio'])) # axis ratio
@@ -394,6 +399,9 @@ class SourcePopulation_(Population):
             print('I don\'t know that data type.')
 
     def RofMz(self, M, z, scatter=True, band=None):
+        '''
+        effective physical radius of source light profile
+        '''
         #band independent so far
         # print('I am in RofMz')
         # equation 5 of Tom's paper
