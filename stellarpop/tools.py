@@ -93,7 +93,7 @@ def ABFilterMagnitude(filter,spectrum,redshift):
         and redshift.
     """
     from scipy.interpolate import splev,splint,splrep
-    from scipy.integrate import simps
+    from scipy.integrate import simpson # NH: was import simps
     from math import log10
     sol = 299792452.
 
