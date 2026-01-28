@@ -267,6 +267,7 @@ class LensPopulation_(Population):
             (1.*sigma)
 
         phi*=(1+z)**(-2.5)
+        self.nozdependence = False  # We have z-dependence: (1+z)**(-2.5)
         return phi
 
     def draw_flattening_lenspop(self,sigma,z=None):
