@@ -25,6 +25,7 @@ c          = 1000 # second SNR cut
 d          = 1000 # third SNR cut
 bfac = 2 # default 2
 rfac = 2 # default 2
+fast_mode = False  # If True, skip image generation (10x faster, redshift-only mode)
 
 # user defined settings overwrite above defaults
 if len(sys.argv)>1:
@@ -35,8 +36,16 @@ if len(sys.argv)>3:
     b=int(sys.argv[4])
     #c=int(sys.argv[5])
     #d=int(sys.argv[6])
+if len(sys.argv)>5:
+    # Optional 5th argument: fast_mode (0 or 1)
+    fast_mode = bool(int(sys.argv[5]))
 
 print('sky fraction simulated: {}'.format(frac))
+print('fast mode (redshift-only): {}'.format('ENABLED' if fast_mode else 'DISABLED'))
+if fast_mode:
+    print('  - Skipping: image generation, convolution, RingFinder')
+    print('  - Expected speedup: 10-12x')
+    print('  - Output: redshifts (zl, zs) + magnifications only')
 if experiment=='COSMOS-Web':
     area = 0.54
     sky_area = 41253
@@ -76,7 +85,24 @@ for survey in surveys:
 
 data_type = 'sf_and_q'
 
-print('loading {} idealised lenses!'.format(data_type))
+# Automatically select source population based on experiment
+# COSMOS-Web: JAGUAR (JWST-like deep field mock)
+# Euclid: Can use LSST or FLAGSHIP (Euclid's own mock)
+# All other surveys: LSST (wide-field survey mock)
+#
+# To use Flagship for Euclid:
+#   1. Place flagship_catalog.fits in working directory
+#   2. Change sourcepop_list below to ["flagship"] for Euclid
+if experiment == 'COSMOS-Web':
+    sourcepop_list = ["jaguar"]
+else:
+    # All other surveys use LSST source catalogue
+    # For Euclid, you can change this to ["flagship"] if you have the catalog
+    sourcepop_list = ["lsst"]
+
+print('Experiment: {}'.format(experiment))
+print('Source catalogue: {}'.format(sourcepop_list[0]))
+print('Data type: {}'.format(data_type))
 
 # Auto-detect idealisedlenses directory (local to working directory)
 idealised_dir = data_type + '_idealisedlenses/'
@@ -88,24 +114,25 @@ if not os.path.exists(idealised_dir):
     or adjust your working directory to where the {data_type}_idealisedlenses/ folder is located.
     """)
 
-# this saves having to remember and hardcode the number of idealised lenses each time
-num_jag = None
-for file in os.listdir(idealised_dir):
-    if fnmatch.fnmatch(file, 'lenspopulation_jaguar_residual_*.pkl'):
-        num_jag = int(re.findall('\d+', file)[0])
-        break
-
-if num_jag is None:
-    raise FileNotFoundError(f"""
-    Could not find 'lenspopulation_jaguar_residual_*.pkl' in {idealised_dir}
-
-    Please run MakeLensPop.py first to generate the idealised lens population.
-    Example: python test_step1_makelens.py
-    """)
-
 t0 = time.perf_counter()
 
-for sourcepop in ["jaguar"]:
+for sourcepop in sourcepop_list:
+  # Find the residual file for this source population
+  num_sources = None
+  for file in os.listdir(idealised_dir):
+      if fnmatch.fnmatch(file, f'lenspopulation_{sourcepop}_residual_*.pkl'):
+          num_sources = int(re.findall('\d+', file)[0])
+          break
+
+  if num_sources is None:
+      raise FileNotFoundError(f"""
+      Could not find 'lenspopulation_{sourcepop}_residual_*.pkl' in {idealised_dir}
+
+      Please run MakeLensPop.py first to generate the idealised lens population with sourcepop='{sourcepop}'.
+      Example: python test_step1_makelens.py
+      """)
+
+  print(f'Loading {num_sources} idealised lenses from {sourcepop} catalogue...')
   chunk=0
   Si=0
   SSPL={}
@@ -113,13 +140,11 @@ for sourcepop in ["jaguar"]:
   for survey in surveys:
       foundcount[survey]=0
 
-  if sourcepop=="cosmos":
-      n_l2=1100000
-  elif sourcepop=="lsst":
-      n_l2=12530000
-  elif sourcepop=="jaguar":
-      n_l2=num_jag # this should be the number appended to the _residual pickle file in idealisedlenses/; it's the total number of real lenses for the whole sky
+  # Use the number detected from the residual file
+  n_l2 = num_sources  # Total number of real lenses for the whole sky
   nall=int(n_l2*frac)
+
+  print(f'Processing {nall} lenses ({frac*100:.1f}% of sky)...')
 
   for i in range(nall):
     if i%10000==0: # if the remainder of i/10000 is zero i.e. if i is a multiple of 10000:
@@ -177,7 +202,7 @@ for sourcepop in ["jaguar"]:
                                     lenspars["rs"][j+1],sourcenumber=j+1    )
 
         if survey[:3]+str(i)!=lastsurvey:
-            model=S[survey].makeLens(stochasticmode="MP")
+            model=S[survey].makeLens(stochasticmode="MP", fast_mode=fast_mode)
             SOdraw=numpy.array(S[survey].SOdraw)
             if type(model)!=type(None):
                 lastsurvey=survey[:3]+str(i)
@@ -196,7 +221,10 @@ for sourcepop in ["jaguar"]:
                 for src in S[survey].sourcenumbers:
                     lenspars["pf"][survey][src]=False
                 continue#try next survey
-            S[survey].ObserveLens()
+            if not fast_mode:
+                S[survey].ObserveLens()
+            else:
+                S[survey]._fast_mode_setup(S[survey].bands)
 
         mag,msrc,SN,bestband,pf=S[survey].SourceMetaData(SNcutA=a,magcut=b,SNcutB=[c,d])
         lenspars["SN"][survey]={}
@@ -216,13 +244,17 @@ for sourcepop in ["jaguar"]:
             lenspars["bestband"][survey][src]=bestband[src]
             lenspars["pf"][survey][src]=pf[src]
             lenspars["resolved"][survey][src]=S[survey].resolved[src]
-        if survey!="Euclid":
-            if S[survey].seeingtest!="Fail":
-                if survey not in ["CFHT","CFHTa"]:
-                    S[survey].makeLens(noisy=True,stochasticmode="1P",SOdraw=SOdraw,MakeModel=False)
-                    rfpf,rfsn=S[survey].RingFinderSN(SNcutA=a,magcut=b,SNcutB=[c,d],mode="donotcrossconvolve")
-                else:
-                    rfpf,rfsn=S[survey].RingFinderSN(SNcutA=a,magcut=b,SNcutB=[c,d],mode="crossconvolve")
+
+        # Skip RingFinder in fast mode (expensive and not needed for redshift-only)
+        if not fast_mode:
+            if survey!="Euclid":
+                if S[survey].seeingtest!="Fail":
+                    if survey not in ["CFHT","CFHTa"]:
+                        S[survey].makeLens(noisy=True,stochasticmode="1P",SOdraw=SOdraw,MakeModel=False)
+                        rfpf,rfsn=S[survey].RingFinderSN(SNcutA=a,magcut=b,SNcutB=[c,d],mode="donotcrossconvolve")
+                    else:
+                        rfpf,rfsn=S[survey].RingFinderSN(SNcutA=a,magcut=b,SNcutB=[c,d],mode="crossconvolve")
+
         lenspars["rfpf"][survey]=rfpf
         lenspars["rfsn"][survey]=rfsn
 

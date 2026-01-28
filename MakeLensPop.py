@@ -52,6 +52,8 @@ class SourcePopulation(SourcePopulation_):
             self.loadlsst()
         elif population=="jaguar":
             self.loadjaguar()
+        elif population=="flagship":
+            self.loadflagship()
 
 class LensSample():
     """
@@ -61,7 +63,7 @@ class LensSample():
     def  __init__(self, D=None,
                   zlmax=3, sigfloor=100,
                   bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
-                  cosmo=[0.3,0.7,0.7], sourcepop="jaguar",
+                  cosmo=[0.3,0.7,0.7], sourcepop="lsst",
                   data_type='sf_and_q'
                   ):
         self.sourcepopulation=sourcepop
@@ -218,7 +220,7 @@ class LensSample():
 
         self.lens=self.reallens
 
-    def LoadLensPop(self,j=0,sourcepopulation="jaguar"):
+    def LoadLensPop(self,j=0,sourcepopulation="lsst"):
         print('loading {} lens population!'.format(self.data_type))
         filename = "{}/lenspopulation_{}_{}.pkl".format(self.idealised_dir, sourcepopulation, j)
         f=open(filename,'rb')
@@ -244,6 +246,6 @@ if __name__ == "__main__":
 
     Ndeflectors = Lpop.Ndeflectors(z=3, zmin=0, fsky=fsky)
 
-    L = LensSample(sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="jaguar")
+    L = LensSample(sigfloor=100, cosmo=[0.3,0.7,0.7], sourcepop="lsst")
 
     L.Generate_Lens_Pop(int(Ndeflectors), firstod=1, nsources=1, prunenonlenses=True)
