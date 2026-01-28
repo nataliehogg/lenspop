@@ -6,6 +6,8 @@ import math
 import indexTricks as iT
 from astropy.io import fits
 import pandas as pd
+import os
+from pathlib import Path
 
 
 class RedshiftDependentRelation():
@@ -296,6 +298,89 @@ class LensPopulation_(Population):
 
 #====================================================================================
 
+def find_jaguar_catalog(filename='JADES_Q_mock_r1_v1.2.fits'):
+    """
+    Auto-detect the path to JAGUAR catalog files.
+    Searches in multiple common locations.
+
+    Parameters
+    ----------
+    filename : str
+        Name of the catalog file to find
+
+    Returns
+    -------
+    str
+        Full path to the catalog directory
+
+    Raises
+    ------
+    FileNotFoundError
+        If catalog cannot be found in any common location
+    """
+    # Get script directory
+    script_dir = Path(__file__).parent.absolute()
+
+    # List of paths to search (in order of priority)
+    search_paths = [
+        # Environment variable (highest priority)
+        os.environ.get('JAGUAR_DATA_PATH'),
+
+        # Relative to current working directory
+        Path.cwd() / 'jaguar',
+        Path.cwd() / 'data' / 'jaguar',
+
+        # Relative to script directory
+        script_dir / 'jaguar',
+        script_dir / 'data' / 'jaguar',
+
+        # Parent directories
+        script_dir.parent / 'jaguar',
+        script_dir.parent / 'lenspop' / 'jaguar',
+        script_dir.parent / 'cosmos_web' / 'lenspop' / 'jaguar',
+
+        # Common absolute paths
+        Path.home() / 'Documents' / 'Projects' / 'cosmos_web' / 'lenspop' / 'jaguar',
+        Path('/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar'),
+        Path('/pbs/home/n/nhogg/git_lenspop/jaguar'),  # CC-IN2P3
+    ]
+
+    # Filter out None values and search
+    for path in search_paths:
+        if path is None:
+            continue
+
+        path = Path(path)
+        catalog_file = path / filename
+
+        if catalog_file.exists():
+            print(f'Found JAGUAR catalog at: {path}')
+            return str(path)
+
+    # If not found, provide helpful error message
+    error_msg = f"""
+    Could not find JAGUAR catalog file '{filename}' in any of the following locations:
+    """
+    for path in search_paths:
+        if path is not None:
+            error_msg += f"\n  - {path}"
+
+    error_msg += f"""
+
+    Please either:
+    1. Place the JAGUAR catalog files in one of the above locations, or
+    2. Set the JAGUAR_DATA_PATH environment variable:
+       export JAGUAR_DATA_PATH=/path/to/jaguar/directory
+
+    The catalog files needed are:
+    - JADES_Q_mock_r1_v1.2.fits
+    - JADES_SF_mock_r1_v1.2.fits
+    """
+
+    raise FileNotFoundError(error_msg)
+
+#====================================================================================
+
 class SourcePopulation_(Population):
     def  __init__(self,
                   D=None,
@@ -342,13 +427,12 @@ class SourcePopulation_(Population):
 
         print('loading {} data!'.format(self.data_type))
 
-        #hdul_q = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # CC-IN2P3
-        #hdul_sf = fits.open(r'/pbs/home/n/nhogg/git_lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits')
+        # Auto-detect the path to JAGUAR catalog files
+        jaguar_path = find_jaguar_catalog('JADES_Q_mock_r1_v1.2.fits')
 
         # Load standard jaguar catalogues
-
-        hdul_q = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_Q_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; quiescent galaxies only
-        hdul_sf = fits.open(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/JADES_SF_mock_r1_v1.2.fits') # JADES catalogue made using JAGUAR sim; star-forming galaxies only
+        hdul_q = fits.open(os.path.join(jaguar_path, 'JADES_Q_mock_r1_v1.2.fits'))  # Quiescent galaxies
+        hdul_sf = fits.open(os.path.join(jaguar_path, 'JADES_SF_mock_r1_v1.2.fits'))  # Star-forming galaxies
 
         data_q = hdul_q[1].data  # assume the first extension is a table
         data_sf = hdul_sf[1].data
@@ -376,7 +460,8 @@ class SourcePopulation_(Population):
             self.p = np.array(list(data_q['position_angle']) + list(data_sf['position_angle']))
         elif self.data_type == 'holloway':
             # or load modified jaguar catalogue from Holloway et al, provided as a csv
-            data = pd.read_csv(r'/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/jaguar/holloway_data/Adapted_JAGUAR_Parent_Catalogue.csv')
+            holloway_path = os.path.join(jaguar_path, 'holloway_data', 'Adapted_JAGUAR_Parent_Catalogue.csv')
+            data = pd.read_csv(holloway_path)
             # Holloway catalogue is the full 10 realisations of 11x11 arcmin;
             # to match with the standard one used above (1 realisation of 11x11arcmin) we select that number from the Holloway catalogue
             # but the Holloway catalogue is sorted by redshift, so we cannot just take the first n lines as we will only get low z sources

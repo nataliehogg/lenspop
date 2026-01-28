@@ -78,12 +78,30 @@ data_type = 'sf_and_q'
 
 print('loading {} idealised lenses!'.format(data_type))
 
+# Auto-detect idealisedlenses directory (local to working directory)
+idealised_dir = data_type + '_idealisedlenses/'
+if not os.path.exists(idealised_dir):
+    raise FileNotFoundError(f"""
+    Could not find directory: {idealised_dir}
+
+    Please ensure you have run MakeLensPop.py first to generate the idealised lens population,
+    or adjust your working directory to where the {data_type}_idealisedlenses/ folder is located.
+    """)
+
 # this saves having to remember and hardcode the number of idealised lenses each time
-for file in os.listdir('/home/nataliehogg/Documents/Projects/cosmos_web/lenspop/'+data_type+'_idealisedlenses/'):
-# for file in os.listdir('/media/nataliehogg/skygate/lenspop_results/old_results/firstjaguar_idealisedlenses'):
+num_jag = None
+for file in os.listdir(idealised_dir):
     if fnmatch.fnmatch(file, 'lenspopulation_jaguar_residual_*.pkl'):
         num_jag = int(re.findall('\d+', file)[0])
-        #num_jag = 235086758 # firstjaguar_
+        break
+
+if num_jag is None:
+    raise FileNotFoundError(f"""
+    Could not find 'lenspopulation_jaguar_residual_*.pkl' in {idealised_dir}
+
+    Please run MakeLensPop.py first to generate the idealised lens population.
+    Example: python test_step1_makelens.py
+    """)
 
 t0 = time.perf_counter()
 

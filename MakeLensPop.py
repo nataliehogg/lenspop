@@ -61,9 +61,12 @@ class LensSample():
     def  __init__(self, D=None,
                   zlmax=3, sigfloor=100,
                   bands=['JWST_NIRCam_F115W', 'JWST_NIRCam_F150W', 'JWST_NIRCam_F277W', 'JWST_NIRCam_F444W'],
-                  cosmo=[0.3,0.7,0.7], sourcepop="jaguar"
+                  cosmo=[0.3,0.7,0.7], sourcepop="jaguar",
+                  data_type='sf_and_q'
                   ):
         self.sourcepopulation=sourcepop
+        self.data_type=data_type
+        self.idealised_dir = data_type + '_idealisedlenses'
         if D==None:
             import distances
             D=distances.Distance(cosmo=cosmo)
@@ -86,6 +89,12 @@ class LensSample():
 
         if prunenonlenses==False:
             assert N<60000
+
+        # Create idealised lenses directory if it doesn't exist
+        import os
+        if not os.path.exists(self.idealised_dir):
+            os.makedirs(self.idealised_dir)
+            print(f"Created directory: {self.idealised_dir}/")
 
         self.lens={}
         self.reallens={}
@@ -182,7 +191,7 @@ class LensSample():
                         #     print(l2)
 
                         if (l2+1)%10000==0: # if (l2+1)/10000 has no remainder:
-                            filename = 'idealisedlenses/lenspopulation_{}_{}.pkl'.format(self.sourcepopulation, l2-10000+1)
+                            filename = '{}/lenspopulation_{}_{}.pkl'.format(self.idealised_dir, self.sourcepopulation, l2-10000+1)
                             out_file = open(filename, 'wb')
                             # pickle.dump(self.reallens, out_file, 2) # NH: so the 2 here is the protocol; we ought to increase this, though two is backwards compatible for py3
                             # 5 is fastest, which may be relevant for the amount of data we have
@@ -194,14 +203,14 @@ class LensSample():
                             self.reallens={}
 
         if save:
-            fn = "idealisedlenses/lenspopulation_%s_residual_%i.pkl"%(self.sourcepopulation, l2)
+            fn = "{}/lenspopulation_{}_residual_{}.pkl".format(self.idealised_dir, self.sourcepopulation, l2)
             f = open(fn, 'wb')
             pickle.dump(self.reallens, f, protocol=5) # NH: update protocol
             f.close()
 
         if prunenonlenses==False:
           if save:
-            f=open("idealisedlenses/nonlenspopulation_%s.pkl"%self.sourcepopulation,'wb')
+            f=open("{}/nonlenspopulation_{}.pkl".format(self.idealised_dir, self.sourcepopulation),'wb')
             pickle.dump(self.lens, f, protocol=5) # NH: update protocol
             f.close()
             print(len(self.lens.keys()))
@@ -210,11 +219,9 @@ class LensSample():
         self.lens=self.reallens
 
     def LoadLensPop(self,j=0,sourcepopulation="jaguar"):
-        # path = '/media/nataliehogg/skygate/lenspop_results/old_results/firstjaguar_'
-        path = ''
-        data_type = 'sf_and_q'
-        print('loading {} lens population!'.format(data_type))
-        f=open(path+data_type+"_idealisedlenses/lenspopulation_%s_%i.pkl"%(sourcepopulation,j),'rb')
+        print('loading {} lens population!'.format(self.data_type))
+        filename = "{}/lenspopulation_{}_{}.pkl".format(self.idealised_dir, sourcepopulation, j)
+        f=open(filename,'rb')
         self.lens=pickle.load(f)
         f.close()
 

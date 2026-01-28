@@ -167,11 +167,15 @@ class FastLensSim(SO,S2N):
         ox=(ox-(a-1)/2.)*ps+(self.xs[sourcenumber])
         oy=(oy-(a-1)/2.)*ps+(self.ys[sourcenumber])
 
-        unlensedsrcmodel=(src.pixeval(ox,oy,csub=5)*(ps**2)).sum()
+        # Adaptive subsampling: use csub=3 for larger sources, csub=5 for small ones
+        # Larger sources don't need as fine subpixel sampling
+        csub_adaptive = 3 if self.rs[sourcenumber] > 0.5 else 5
+
+        unlensedsrcmodel=(src.pixeval(ox,oy,csub=csub_adaptive)*(ps**2)).sum()
         srcnorm=unlensedsrcmodel.sum()
         unlensedsrcmodel/=srcnorm
 
-        srcmodel=pylenser.lens_images(lenses,src,[self.x,self.y],getPix=True,csub=5)[0] # NH: pylens -> pylenser
+        srcmodel=pylenser.lens_images(lenses,src,[self.x,self.y],getPix=True,csub=csub_adaptive)[0] # NH: pylens -> pylenser
         srcmodel[srcmodel<0]=0
         srcmodel/=srcnorm
 
@@ -191,7 +195,8 @@ class FastLensSim(SO,S2N):
 
     def EvaluateGalaxy(self,light,mag,bands):
         model={}
-        lightm=light.pixeval(self.x,self.y,csub=5)
+        # Galaxy light is smooth, csub=3 is sufficient (was csub=5)
+        lightm=light.pixeval(self.x,self.y,csub=3)
         lightm[lightm<0]=0
         lightm/=lightm.sum()
         for band in bands:
