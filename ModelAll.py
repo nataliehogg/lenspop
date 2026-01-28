@@ -12,7 +12,7 @@ import fnmatch
 import re
 
 sigfloor = 100 # must match that used in MakeLensPop!
-cosmo = [0.3, 0.7, 0.7] # omega_m, omega_L, h; should match sourcepop cosmology?
+cosmo = [0.319, 0.681, 0.67] # omega_m, omega_L, h
 
 L = LensSample(sigfloor=sigfloor, cosmo=cosmo)
 
@@ -87,17 +87,11 @@ data_type = 'sf_and_q'
 
 # Automatically select source population based on experiment
 # COSMOS-Web: JAGUAR (JWST-like deep field mock)
-# Euclid: Can use LSST or FLAGSHIP (Euclid's own mock)
 # All other surveys: LSST (wide-field survey mock)
-#
-# To use Flagship for Euclid:
-#   1. Place flagship_catalog.fits in working directory
-#   2. Change sourcepop_list below to ["flagship"] for Euclid
 if experiment == 'COSMOS-Web':
     sourcepop_list = ["jaguar"]
 else:
     # All other surveys use LSST source catalogue
-    # For Euclid, you can change this to ["flagship"] if you have the catalog
     sourcepop_list = ["lsst"]
 
 print('Experiment: {}'.format(experiment))

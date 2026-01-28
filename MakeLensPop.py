@@ -52,8 +52,6 @@ class SourcePopulation(SourcePopulation_):
             self.loadlsst()
         elif population=="jaguar":
             self.loadjaguar()
-        elif population=="flagship":
-            self.loadflagship()
 
 class LensSample():
     """

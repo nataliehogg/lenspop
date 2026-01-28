@@ -140,19 +140,19 @@ class Survey():
             self.stochasticobservingdata=[twod115, twod150, twod277, twod440]
 
         elif Name=="Euclid":
-            self.pixelsize=0.1
+            self.pixelsize=0.1 # https://sci.esa.int/web/euclid/-/euclid-vis-instrument
             self.side=200
-            self.bands=['VIS']
-            self.zeropoints=[25.5]
+            self.bands=['VIS'] # https://sci.esa.int/web/euclid/-/euclid-vis-instrument
+            self.zeropoints=[25.5] # https://www.mssl.ucl.ac.uk/~smn2/instrument.html
             self.zeroexposuretime=1.
-            self.skybrightnesses=[22.2]
-            self.exposuretimes=[1610]
-            self.gains=[1]
-            self.seeing=[.2]
-            self.nexposures=4
-            self.degrees_of_survey=20000
-            self.readnoise=(4.5)
-            twodVIS=numpy.array([[0.17,22.2],[0.17,22.2]])
+            self.skybrightnesses=[22.3203] # https://www.mssl.ucl.ac.uk/~smn2/instrument.html
+            self.exposuretimes=[560.52] # https://www.euclid-ec.org/science/overview/
+            self.gains=[3.1] # https://www.mssl.ucl.ac.uk/~smn2/instrument.html
+            self.seeing=[0.17] # https://arxiv.org/pdf/2503.15635v1 Table 1
+            self.nexposures=4 # https://www.euclid-ec.org/science/overview/
+            self.degrees_of_survey=14000 # https://www.euclid-ec.org/science/overview/
+            self.readnoise=(4.5) # https://www.mssl.ucl.ac.uk/~smn2/instrument.html
+            twodVIS=numpy.array([[0.17,22.32],[0.17,22.32]])
             self.stochasticobservingdata=[twodVIS]
 
         elif Name=="ideal":
